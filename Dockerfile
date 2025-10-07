@@ -5,7 +5,7 @@ COPY backend/package*.json ./
 RUN npm install
 COPY backend ./src
 WORKDIR /app/backend/src
-CMD ["node", "server.js"]
+CMD ["node", "src/index.js"]
 
 # --- Frontend ---
 FROM node:18 AS frontend
@@ -25,4 +25,5 @@ WORKDIR /app/backend/src
 ENV PORT=4000
 EXPOSE 4000
 
-CMD ["node", "index.js"]
+CMD ["node", "src/index.js"]
+
