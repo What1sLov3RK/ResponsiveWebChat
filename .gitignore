@@ -1,0 +1,18 @@
+# System
+.DS_Store
+
+# Docker
+*.pid
+*.seed
+*.pid.lock
+docker-data/
+*.log
+
+# Environment
+.env
+.env.local
+
+# Node modules in subfolders
+**/node_modules/
+**/build/
+**/dist/
