@@ -5,7 +5,7 @@ COPY backend/package*.json ./
 RUN npm install
 COPY backend ./src
 WORKDIR /app/backend/src
-CMD ["node", "index.js"]
+CMD ["node", "server.js"]
 
 # --- Frontend ---
 FROM node:18 AS frontend
