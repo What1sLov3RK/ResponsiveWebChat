@@ -1,0 +1,21 @@
+.input-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.chat-input {
+    width: 80%;
+    height:30px;
+    box-sizing: border-box;
+    background: url("../img/paper-plane.png") no-repeat calc(100% - 10px) center;
+    padding-right: 5px;
+    background-size:15px;
+}
+
+.chat-input::placeholder {
+    color: #888;
+}
+
+
