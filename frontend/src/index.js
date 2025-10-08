@@ -8,7 +8,7 @@ import { ToastContainer } from 'react-toastify';
 import { Provider } from "mobx-react";
 import chatStore from "./chatStore";
 
-const root: Root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
 <div>
         <Provider chatStore={chatStore}>
