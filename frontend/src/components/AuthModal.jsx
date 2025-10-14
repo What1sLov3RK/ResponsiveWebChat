@@ -1,17 +1,18 @@
-import React from 'react';
+import React from "react";
+import Modal from "./Modal";
 import LogIn from "./LogIn";
 import SignUp from "./SignUp";
-import Modal from "./Modal";
+
 const AuthModal = ({ onClose, isSignup, switchToSignup, switchToLogin }) => {
   return (
-        <Modal>
-        {isSignup ? (
-          <SignUp onClose={onClose} switchToLogin={switchToLogin} />
-        ) : (
-          <LogIn onClose={onClose} switchToSignup={switchToSignup} />
-        )}
-        </Modal>
+    <Modal onClose={onClose} name={isSignup ? "Sign Up" : "Log In"}>
+      {isSignup ? (
+        <SignUp onClose={onClose} switchToLogin={switchToLogin} />
+      ) : (
+        <LogIn onClose={onClose} switchToSignup={switchToSignup} />
+      )}
+    </Modal>
   );
-}
+};
 
 export default AuthModal;

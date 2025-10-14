@@ -34,6 +34,13 @@ api.interceptors.response.use(
     const originalRequest = error.config;
     const status = error.response?.status;
 
+    if (
+      originalRequest?.url?.includes("/users/login") ||
+      originalRequest?.url?.includes("/users/registration")
+    ) {
+      return Promise.reject(error);
+    }
+
     if (status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve) => {
@@ -49,14 +56,14 @@ api.interceptors.response.use(
 
       try {
         const refreshToken = localStorage.getItem("refresh-token");
-        if (!refreshToken) throw new Error("Missing refresh token");
+        if (!refreshToken) throw new Error("Unauthorized");
 
         const res = await axios.post(`${BASE_URL}/users/refresh-token`, {
           refreshToken,
         });
 
         const newAccessToken = res.data.access_token;
-        if (!newAccessToken) throw new Error("No access token returned");
+        if (!newAccessToken) throw new Error("Unauthorized");
 
         localStorage.setItem("access-token", newAccessToken);
         api.defaults.headers.Authorization = `Bearer ${newAccessToken}`;
@@ -70,7 +77,9 @@ api.interceptors.response.use(
         isRefreshing = false;
         refreshSubscribers = [];
         localStorage.clear();
-        window.location.href = "/";
+        if (window.location.pathname !== "/") {
+          window.location.replace("/");
+        }
         return Promise.reject(err);
       }
     }
@@ -78,5 +87,6 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 
 export default api;

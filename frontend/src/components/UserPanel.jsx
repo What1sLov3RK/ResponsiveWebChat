@@ -3,29 +3,29 @@ import Button from "./Button";
 import { useState, useEffect } from "react";
 import AuthModal from "./AuthModal";
 import Input from "./Input";
-import chatStore from "../chatStore";
+import chatStore from "../stores/chatStore";
 
 const UserPanel = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
   const [user, setUser] = useState(null);
+  const { setSelectedChat } = chatStore;
 
-  const { setChats, setSelectedChat } = chatStore;
   const openLoginModal = () => {
     setIsSignup(false);
     setIsModalOpen(true);
   };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
+  const closeModal = () => setIsModalOpen(false);
 
   const handleLogout = () => {
     localStorage.removeItem("access-token");
     localStorage.removeItem("refresh-token");
     localStorage.removeItem("authorized");
     localStorage.removeItem("user-info");
-    chatStore.setChats([]);
+
+    chatStore.chats = [];
+    chatStore.selectedChat = null;
+    chatStore.cleanupSocketListeners();
     setUser(null);
   };
 
@@ -41,11 +41,9 @@ const UserPanel = () => {
       } catch {
         setUser(null);
         setSelectedChat(null);
-        setChats([]);
-
       }
     }
-  }, [isModalOpen]);
+  }, [isModalOpen, setSelectedChat]);
 
   return (
     <div id="user-panel-container">

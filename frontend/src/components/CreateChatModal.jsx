@@ -3,7 +3,7 @@ import Modal from "./Modal";
 import Input from "./Input";
 import Button from "./Button";
 import {toast} from "react-toastify";
-import chatStore from "../chatStore";
+import chatStore from "../stores/chatStore";
 
 const CreateChatModal = ({ onClose }) => {
     const { createChat } = chatStore;

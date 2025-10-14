@@ -3,8 +3,8 @@ import Modal from "./Modal";
 import Input from "./Input";
 import Button from "./Button";
 import { toast } from "react-toastify";
-import chatStore from "../chatStore";
-import "../css/form.css"; // ✅ make sure this is included
+import chatStore from "../stores/chatStore";
+import "../css/form.css";
 
 const ChangeChatNameModal = ({ onClose }) => {
   const { changeChatName, selectedChat, deleteChat, setSelectedChat } =

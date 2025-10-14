@@ -1,68 +1,55 @@
 import React, { useState } from "react";
-import Modal from "./Modal";
-import "../css/modal.css"; // ✅ use modal layout styles, not form.css
+import "../css/modal.css";
 import Input from "./Input";
 import Button from "./Button";
 import { toast } from "react-toastify";
-import chatStore from "../chatStore";
+import chatStore from "../stores/chatStore";
 import api from "../api";
 
 const SignUp = ({ onClose, switchToLogin }) => {
   const [email, setEmail] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [firstname, setFirstname] = useState("");
+  const [lastname, setLastname] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { setChats, setSelectedChat, fetchChats } = chatStore;
+  const { setSelectedChat, fetchChats } = chatStore;
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (loading) return;
+
     setLoading(true);
-
     try {
-      const payload = {
-        email,
-        firstname: firstName,
-        lastname: lastName,
-        password,
-      };
+      const payload = { email, firstname, lastname, password };
+      const data = await api.post("/users/registration", payload);
 
-      const response = await api.post("/users/registration", payload);
-
-      if (!response.ok) {
-        toast.error(response.error || "Failed to sign up");
+      if (!data?.access_token || !data?.refresh_token) {
+        toast.error(data?.error || "Failed to sign up");
         return;
       }
 
-      localStorage.setItem("access-token", response.access_token);
-      localStorage.setItem("refresh-token", response.refresh_token);
+      localStorage.setItem("access-token", data.access_token);
+      localStorage.setItem("refresh-token", data.refresh_token);
       localStorage.setItem("authorized", "true");
       localStorage.setItem(
         "user-info",
-        JSON.stringify({
-          firstname: firstName,
-          lastname: lastName,
-          email: payload.email,
-        })
+        JSON.stringify({ firstname, lastname, email })
       );
 
       toast.success("Account created successfully!");
       setSelectedChat(null);
-      setChats([]);
+      chatStore.initSocket();
       await fetchChats();
-      onClose();
-    } catch (error) {
-      console.error("Signup error:", error);
-      const res = error.response?.data;
 
+      onClose?.();
+    } catch (error) {
+      const res = error.response?.data;
       if (Array.isArray(res?.errors)) {
         res.errors.forEach((err) => toast.error(err.msg));
-      } else if (res?.error) {
-        toast.error(res.error);
       } else {
-        toast.error(error.message || "Failed to sign up. Please try again.");
+        toast.error(res?.error || error.details || "Failed to sign up");
       }
     } finally {
       setLoading(false);
@@ -70,67 +57,60 @@ const SignUp = ({ onClose, switchToLogin }) => {
   };
 
   return (
-    <Modal onClose={onClose} name="Sign Up">
-      <form onSubmit={handleSubmit}>
-        <div className="modal-input-container">
-          <label>Email:</label>
-          <Input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
-            required
-          />
-        </div>
+    <form onSubmit={handleSubmit} noValidate autoComplete="off">
+      <div className="modal-input-container">
+        <label>Email:</label>
+        <Input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Enter your email"
+          required
+        />
+      </div>
 
-        <div className="modal-input-container">
-          <label>First name:</label>
-          <Input
-            type="text"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            placeholder="Enter your first name"
-            required
-          />
-        </div>
+      <div className="modal-input-container">
+        <label>First name:</label>
+        <Input
+          type="text"
+          value={firstname}
+          onChange={(e) => setFirstname(e.target.value)}
+          placeholder="Enter your first name"
+          required
+        />
+      </div>
 
-        <div className="modal-input-container">
-          <label>Last name:</label>
-          <Input
-            type="text"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            placeholder="Enter your last name"
-            required
-          />
-        </div>
+      <div className="modal-input-container">
+        <label>Last name:</label>
+        <Input
+          type="text"
+          value={lastname}
+          onChange={(e) => setLastname(e.target.value)}
+          placeholder="Enter your last name"
+        />
+      </div>
 
-        <div className="modal-input-container">
-          <label>Password:</label>
-          <Input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
-            minLength={8}
-            required
-          />
-        </div>
+      <div className="modal-input-container">
+        <label>Password:</label>
+        <Input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Enter your password"
+          minLength={8}
+          required
+        />
+      </div>
 
-        <div className="change-modal-buttons-container">
-          <Button
-            type="submit"
-            name={loading ? "Signing Up..." : "Sign Up"}
-            disabled={loading}
-          />
-          <Button
-            name="Log In"
-            onClick={switchToLogin}
-            disabled={loading}
-          />
-        </div>
-      </form>
-    </Modal>
+      <div className="change-modal-buttons-container">
+        <Button
+          type="submit"
+          name={loading ? "Signing Up..." : "Sign Up"}
+          disabled={loading}
+        />
+        <Button type="button" name="Log In" onClick={switchToLogin} disabled={loading} />
+      </div>
+    </form>
   );
 };
 

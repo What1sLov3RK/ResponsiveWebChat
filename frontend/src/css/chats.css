@@ -32,6 +32,11 @@
   border-radius: 18px;
 }
 
+.chats-head > button:hover {
+  background-color: deepskyblue;
+  color: white;
+}
+
 .chat-list {
   flex: 1;
   overflow-y: auto;
@@ -53,11 +58,17 @@
 }
 
 .chat-item:hover {
-  background-color: #f2f2f2;
+  background-color: deepskyblue;
+
 }
 
 .chat-item.active {
-  background-color: #c2c2c2;
+  background-color: deepskyblue;
+  color: white;
+}
+
+.chat-item.active > .chat-name-message .chat-name{
+  color: #282828;
 }
 
 .chat-item.selected {
@@ -231,3 +242,5 @@
   }
 
 }
+
+

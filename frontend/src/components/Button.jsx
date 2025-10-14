@@ -1,11 +1,9 @@
 import "../css/button.css";
 
-const Button= ({ name, onClick, className, type="text"}) => {
-  return (
-    <button className={className} onClick={onClick} type={type}>
-      {name}
-    </button>
-  );
-}
+const Button = ({ name, onClick, className = "", type = "button", disabled }) => (
+  <button type={type} className={className} onClick={onClick} disabled={disabled}>
+    {name}
+  </button>
+);
 
 export default Button;
