@@ -76,4 +76,3 @@ api.interceptors.response.use(
 );
 
 export default api;
-console.log(api.baseURL)
