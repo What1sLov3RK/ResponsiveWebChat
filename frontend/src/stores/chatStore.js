@@ -14,27 +14,26 @@ class ChatStore {
 
   constructor() {
     makeAutoObservable(this);
-    connectSocket();
-    if (!this._handlersRegistered) {
-      registerMessageHandlers(this.handleIncomingMessage);
-      this._handlersRegistered = true;
-    }
   }
-
 
   initSocket = () => {
     if (this._socketInitialized) return;
-    connectSocket();
+
     socket.on("connect", () => console.log("⚡️ Socket connected:", socket.id));
+    connectSocket();
     registerMessageHandlers(this.handleIncomingMessage);
+
     this._socketInitialized = true;
   };
 
   cleanupSocketListeners = () => {
     if (!this._socketInitialized) return;
+
     unregisterMessageHandlers();
     disconnectSocket();
+
     this._socketInitialized = false;
+    console.log("🧹 Socket listeners cleaned up");
   };
 
   handleIncomingMessage = (message) => {
@@ -46,15 +45,16 @@ class ChatStore {
           messages: [...(this.chats[chatIndex].messages || []), message],
         };
         this.chats[chatIndex] = updatedChat;
+
         if (this.selectedChat && this.selectedChat._id === message.chatId) {
           this.selectedChat = updatedChat;
         }
+
         if (message.sender === "bot") {
           toast.info(message.content, { autoClose: 1500 });
         }
-
       } else {
-        console.warn("⚠️ Received message for unknown chat:", message.chatId);
+        console.warn(" Received message for unknown chat:", message.chatId);
       }
     });
   };
@@ -72,21 +72,22 @@ class ChatStore {
 
   fetchMessages = async (chatId) => {
     try {
-      const res = await api.get(`/messages/${chatId}`);
+      const res = await api.get(`/message/${chatId}`);
       runInAction(() => {
         const chat = this.chats.find((c) => c._id === chatId);
         if (chat) chat.messages = res.messages || [];
       });
     } catch (err) {
-      console.log(err)
+      console.log(err);
     }
   };
 
   setSelectedChat = (chat) => {
     this.selectedChat = chat;
-    if (chat?._id){
+    if (chat?._id) {
       emitJoinChat(chat._id);
-      this.fetchMessages(chat._id);}
+      this.fetchMessages(chat._id);
+    }
   };
 
   fetchChats = async () => {
@@ -94,14 +95,13 @@ class ChatStore {
       const res = await api.get("/chat/all-chats");
       runInAction(() => {
         this.chats = Array.isArray(res.chats)
-          ? res.chats.map(c => ({ ...c, messages: c.messages || [] }))
+          ? res.chats.map((c) => ({ ...c, messages: c.messages || [] }))
           : [];
       });
     } catch (err) {
       console.error("Failed to fetch chats:", err);
     }
   };
-
 
   sendUserMessage = async (chatId, content) => {
     if (!chatId || !content?.trim()) return;

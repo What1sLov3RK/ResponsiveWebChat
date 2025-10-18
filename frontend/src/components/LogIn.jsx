@@ -10,6 +10,7 @@ const LogIn = ({ onClose, switchToSignup }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
   const { setSelectedChat, fetchChats } = chatStore;
 
   const handleSubmit = async (e) => {
@@ -20,39 +21,46 @@ const LogIn = ({ onClose, switchToSignup }) => {
     setLoading(true);
     try {
       const payload = { email, password };
-      const data = await api.post("/users/login", payload);
+      const res = await api.post("/users/login", payload);
 
-      if (!data?.access_token || !data?.refresh_token) {
-        toast.error(data?.error || "Invalid email or password");
+      if (res?.error) {
+        toast.error(res.error || "Invalid email or password");
         return;
       }
 
-      localStorage.setItem("access-token", data.access_token);
-      localStorage.setItem("refresh-token", data.refresh_token);
       localStorage.setItem("authorized", "true");
       localStorage.setItem(
         "user-info",
         JSON.stringify({
-          firstname: data.firstname,
-          lastname: data.lastname,
+          firstname: res.user?.firstname,
+          lastname: res.user?.lastname,
           email: payload.email,
         })
       );
-    chatStore.initSocket();
-    toast.success("Logged in successfully!");
-    setSelectedChat(null);
-    await fetchChats();
 
+      toast.success("Logged in successfully! 🎉");
+      setTimeout(() => {
+  chatStore.initSocket();
+}, 500);
+      setSelectedChat(null);
+
+      await new Promise((r) => setTimeout(r, 100));
+
+      await fetchChats();
       onClose?.();
     } catch (error) {
       const res = error.response?.data;
-      const message =
-        res?.error ||
-        res?.message ||
-        (error.response?.status === 401
-          ? "Invalid email or password"
-          : "Failed to log in. Please try again.");
-      toast.error(message);
+      const status = error.response?.status;
+
+      if (status === 401) {
+        toast.error("Invalid email or password");
+      } else if (status === 429) {
+        toast.error("Too many login attempts. Try again later.");
+      } else if (res?.error) {
+        toast.error(res.error);
+      } else {
+        toast.error("Failed to log in. Please try again later.");
+      }
     } finally {
       setLoading(false);
     }

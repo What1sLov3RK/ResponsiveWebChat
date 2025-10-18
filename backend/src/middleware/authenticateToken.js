@@ -1,21 +1,21 @@
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
-dotenv.config();
+import { config } from '../config/index.js';
+import { logger } from '../logger.js';
 
 const authMiddleware = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  if (!token) {
-    return res.status(401).json({ error: 'Missing access token' });
-  }
+  try {
+    const cookieToken = req.cookies?.access_token;
+    const headerToken = req.headers.authorization?.startsWith('Bearer ')
+      ? req.headers.authorization.split(' ')[1]
+      : null;
 
-  const secret = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET;
+    const token = cookieToken || headerToken;
 
-  jwt.verify(token, secret, (err, decoded) => {
-    if (err) {
-      console.error('Auth error:', err.message);
-      return res.status(401).json({ error: 'Invalid or expired token' });
+    if (!token) {
+      return res.status(401).json({ error: 'Missing access token' });
     }
+
+    const decoded = jwt.verify(token, config.jwtAccessSecret);
 
     req.user = {
       userId: decoded.userId,
@@ -23,7 +23,10 @@ const authMiddleware = (req, res, next) => {
     };
 
     next();
-  });
+  } catch (err) {
+    logger.error('Auth verification failed:', err.message);
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
 };
 
 export default authMiddleware;

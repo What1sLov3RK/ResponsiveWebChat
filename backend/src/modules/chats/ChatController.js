@@ -8,7 +8,6 @@ class ChatController {
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized: missing userId' });
       }
-
       const chats = await ChatService.getAllChats(userId);
       return res.status(200).json({ chats });
     } catch (err) {

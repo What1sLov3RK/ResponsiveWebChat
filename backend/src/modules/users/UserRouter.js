@@ -43,11 +43,8 @@ router.post(
   UserController.login,
 );
 
-router.post(
-  '/refresh-token',
-  [body('refreshToken').notEmpty().withMessage('Missing refresh token')],
-  validateRequest,
-  UserController.refreshToken,
-);
+router.post('/refresh', validateRequest, UserController.refreshToken);
+
+router.get('/logout', validateRequest, UserController.logout);
 
 export default router;

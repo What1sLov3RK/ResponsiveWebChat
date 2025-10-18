@@ -23,33 +23,40 @@ const SignUp = ({ onClose, switchToLogin }) => {
     setLoading(true);
     try {
       const payload = { email, firstname, lastname, password };
-      const data = await api.post("/users/registration", payload);
+      const res = await api.post("/users/registration", payload);
 
-      if (!data?.access_token || !data?.refresh_token) {
-        toast.error(data?.error || "Failed to sign up");
+      if (res?.error) {
+        toast.error(res.error);
         return;
       }
 
-      localStorage.setItem("access-token", data.access_token);
-      localStorage.setItem("refresh-token", data.refresh_token);
+      toast.success("Account created successfully! 🎉");
+
       localStorage.setItem("authorized", "true");
       localStorage.setItem(
         "user-info",
         JSON.stringify({ firstname, lastname, email })
       );
 
-      toast.success("Account created successfully!");
       setSelectedChat(null);
-      chatStore.initSocket();
-      await fetchChats();
+      setTimeout(() => {
+  chatStore.initSocket();
+}, 500);
 
+      await new Promise((r) => setTimeout(r, 100));
+
+      await fetchChats();
       onClose?.();
     } catch (error) {
       const res = error.response?.data;
-      if (Array.isArray(res?.errors)) {
-        res.errors.forEach((err) => toast.error(err.msg));
+      const status = error.response?.status;
+
+      if (status === 409) {
+        toast.error("User with this email already exists");
+      } else if (Array.isArray(res?.details)) {
+        res.details.forEach((msg) => toast.error(msg));
       } else {
-        toast.error(res?.error || error.details || "Failed to sign up");
+        toast.error(res?.error || "Registration failed");
       }
     } finally {
       setLoading(false);
@@ -87,6 +94,7 @@ const SignUp = ({ onClose, switchToLogin }) => {
           value={lastname}
           onChange={(e) => setLastname(e.target.value)}
           placeholder="Enter your last name"
+          required
         />
       </div>
 
@@ -108,7 +116,12 @@ const SignUp = ({ onClose, switchToLogin }) => {
           name={loading ? "Signing Up..." : "Sign Up"}
           disabled={loading}
         />
-        <Button type="button" name="Log In" onClick={switchToLogin} disabled={loading} />
+        <Button
+          type="button"
+          name="Log In"
+          onClick={switchToLogin}
+          disabled={loading}
+        />
       </div>
     </form>
   );

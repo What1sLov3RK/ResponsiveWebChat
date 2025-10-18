@@ -2,6 +2,7 @@ import pino from 'pino';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { config } from './config/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,7 +20,7 @@ const errorFileStream = fs.createWriteStream(errorFilePath, { flags: 'a' });
 
 const logger = pino(
   {
-    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+    level: config.node_env === 'production' ? 'info' : 'debug',
     timestamp: pino.stdTimeFunctions.isoTime,
     formatters: {
       level(label) {

@@ -8,6 +8,5 @@ export const emitJoinChat = (chatId) => {
 
 export const emitSendMessage = (chatId, content) => {
   socket.emit(SOCKET_EVENTS.SEND_MESSAGE, { chatId, content });
-
   console.log("📡 Emitted SEND_MESSAGE:", { chatId, content });
 };

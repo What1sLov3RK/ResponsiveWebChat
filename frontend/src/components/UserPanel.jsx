@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import AuthModal from "./AuthModal";
 import Input from "./Input";
 import chatStore from "../stores/chatStore";
+import api from '../api';
 
 const UserPanel = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,11 +19,9 @@ const UserPanel = () => {
   const closeModal = () => setIsModalOpen(false);
 
   const handleLogout = () => {
-    localStorage.removeItem("access-token");
-    localStorage.removeItem("refresh-token");
+    api.get('users/logout')
     localStorage.removeItem("authorized");
     localStorage.removeItem("user-info");
-
     chatStore.chats = [];
     chatStore.selectedChat = null;
     chatStore.cleanupSocketListeners();

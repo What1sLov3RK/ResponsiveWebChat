@@ -14,15 +14,14 @@ const ActiveChat = observer(() => {
 
   const [newMessage, setNewMessage] = useState("");
   const [showRenameModal, setShowRenameModal] = useState(false);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+
   const messagesEndRef = useRef(null);
   const messageContainerRef = useRef(null);
   const prevMessagesLengthRef = useRef(0);
 
   const scrollToBottom = (behavior = "smooth") => {
-    const endEl = messagesEndRef.current;
-    if (endEl) {
-      endEl.scrollIntoView({ behavior });
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior });
   };
 
   const isUserNearBottom = () => {
@@ -35,20 +34,16 @@ const ActiveChat = observer(() => {
 
   useEffect(() => {
     prevMessagesLengthRef.current = chat?.messages?.length || 0;
-    if (chat) setTimeout(() => scrollToBottom("auto"), 50);
+    if (chat) setTimeout(() => scrollToBottom("auto"), 10);
   }, [chat?._id]);
 
   useEffect(() => {
+    chatStore.initSocket()
     const messages = chat?.messages || [];
     const prevLen = prevMessagesLengthRef.current;
     const newLen = messages.length;
     const nearBottom = isUserNearBottom();
-    const newMessagesAdded = newLen > prevLen;
-
-    if (newMessagesAdded && nearBottom) {
-      scrollToBottom("smooth");
-    }
-
+    if (newLen > prevLen && nearBottom) scrollToBottom("smooth");
     prevMessagesLengthRef.current = newLen;
   }, [chat?.messages?.length]);
 
@@ -65,55 +60,48 @@ const ActiveChat = observer(() => {
     }
   };
 
-  const renderMessages = () => {
-    if (!chat?.messages?.length)
-      return (
-        <p style={{ color: "#888", textAlign: "center", marginTop: "20px" }}>
-          No messages yet
-        </p>
-      );
+  const toggleSidebar = () => {
+    const sidebar = document.getElementById("user-chats-container");
+    const overlay = document.getElementById("sidebar-overlay");
 
-    return chat.messages.map((m) => {
-      const isUser = m.sender === "user";
-      const date = new Date(m.timestamp || m.createdAt);
-      const formattedDate = date.toLocaleString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        month: "short",
-        day: "numeric",
-      });
+    if (!sidebar || !overlay) return;
 
-      return (
-        <div
-          key={m._id ?? Math.random()}
-          className={`message-item-container ${isUser ? "from-user" : "from-bot"}`}
-        >
-          {!isUser && (
-            <img
-              src="https://xsgames.co/randomusers/assets/avatars/male/38.jpg"
-              alt="bot-avatar"
-            />
-          )}
-          <div className="message-item">
-            <div className={isUser ? "user-message" : "bot-message"}>
-              {m.content}
-            </div>
-            <span
-              className={
-                isUser ? "user-message-date message-date" : "message-date"
-              }
-            >
-              {formattedDate}
-            </span>
-          </div>
-        </div>
-      );
-    });
+    if (isSidebarVisible) {
+      sidebar.classList.remove("visible");
+      overlay.classList.remove("visible");
+      setIsSidebarVisible(false);
+    } else {
+      sidebar.classList.add("visible");
+      overlay.classList.add("visible");
+      setIsSidebarVisible(true);
+    }
+  };
+
+  const handleOverlayClick = () => {
+    const sidebar = document.getElementById("user-chats-container");
+    const overlay = document.getElementById("sidebar-overlay");
+    sidebar?.classList.remove("visible");
+    overlay?.classList.remove("visible");
+    setIsSidebarVisible(false);
   };
 
   return (
     <div id="active-chat">
-      <div id="chat-name">
+      <div
+        id="chat-name"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          justifyContent: "flex-start",
+          padding: "0 10px",
+        }}
+      >
+
+        <button id="toggle-sidebar" onClick={toggleSidebar}>
+          ☰
+        </button>
+
         {chat ? (
           <>
             <img
@@ -121,10 +109,7 @@ const ActiveChat = observer(() => {
               alt="chat"
             />
             <h2>{chat.name}</h2>
-            <div
-              id="change-chat-name"
-              onClick={() => setShowRenameModal(true)}
-            />
+            <div id="change-chat-name" onClick={() => setShowRenameModal(true)} />
           </>
         ) : (
           <h2 style={{ color: "deepskyblue", marginLeft: 10 }}>
@@ -132,12 +117,39 @@ const ActiveChat = observer(() => {
           </h2>
         )}
       </div>
-
       <div id="message-container" ref={messageContainerRef}>
-        {renderMessages()}
+        {chat?.messages?.length ? (
+          chat.messages.map((m) => {
+            const isUser = m.sender === "user";
+            const time = new Date(m.timestamp || m.createdAt).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+            return (
+              <div
+                key={m._id ?? Math.random()}
+                className={`message-item-container ${isUser ? "from-user" : "from-bot"}`}
+              >
+                {!isUser && (
+                  <img
+                    src="https://xsgames.co/randomusers/assets/avatars/male/38.jpg"
+                    alt="bot"
+                  />
+                )}
+                <div className="message-item">
+                  <div className={isUser ? "user-message" : "bot-message"}>
+                    {m.content}
+                  </div>
+                  <span className="message-date">{time}</span>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <p style={{ textAlign: "center", color: "#999" }}>No messages yet</p>
+        )}
         <div ref={messagesEndRef} />
       </div>
-
       {chat && (
         <div id="chat-input-container">
           <ChatInput
@@ -148,12 +160,12 @@ const ActiveChat = observer(() => {
           />
         </div>
       )}
-
       {showRenameModal && (
         <div id="modal-layer" role="dialog" aria-modal="true">
           <ChangeChatNameModal onClose={() => setShowRenameModal(false)} />
         </div>
       )}
+      <div id="sidebar-overlay" onClick={handleOverlayClick}></div>
     </div>
   );
 });
