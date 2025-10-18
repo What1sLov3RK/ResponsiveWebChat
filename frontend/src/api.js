@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = process.env.API_BASE_URL || process.env.API_BASE_DEV_URL;
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -8,6 +8,7 @@ const api = axios.create({
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });
+
 
 let isRefreshing = false;
 let refreshSubscribers = [];
@@ -75,3 +76,4 @@ api.interceptors.response.use(
 );
 
 export default api;
+console.log(api.baseURL)
