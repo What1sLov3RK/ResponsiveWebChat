@@ -15,7 +15,7 @@ logger.info('⚙️ Socket.IO initialized');
       serverSelectionTimeoutMS: 5000,
     });
     logger.info('✅ Connected to MongoDB');
-    const PORT = config.port || 4000;
+    const PORT = process.env.PORT || 4000;
     httpServer.listen(PORT, () => {
       logger.info(`🚀 Server running on port ${PORT}`);
     });
