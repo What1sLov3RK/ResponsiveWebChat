@@ -16,10 +16,9 @@ logger.info('⚙️ Socket.IO initialized');
     });
     logger.info('✅ Connected to MongoDB');
     const PORT = process.env.PORT || 4000;
-    httpServer.listen(PORT, () => {
+    httpServer.listen(PORT, '0.0.0.0', () => {
       logger.info(`🚀 Server running on port ${PORT}`);
     });
-
     const shutdown = async (signal) => {
       logger.warn(`${signal} received — closing server...`);
       await mongoose.connection.close();
