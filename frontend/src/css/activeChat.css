@@ -5,7 +5,7 @@ label {
 #active-chat {
   display: grid;
   grid-template-rows: auto 1fr auto;
-  height: 100svh;
+  height: var(--app-height, 100dvh);
   width: 100%;
   background-color: #f1f1f1;
   position: relative;
