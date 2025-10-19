@@ -1,14 +1,22 @@
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 label { color: deepskyblue; }
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
   width: 100%;
   font-family: "Inter", Arial, sans-serif;
   background-color: #f8f8f8;
   color: #222;
   overflow: hidden;
+  overscroll-behavior: none;
+  min-height: 0;
 }
 
 body{

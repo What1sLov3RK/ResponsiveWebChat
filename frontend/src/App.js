@@ -19,6 +19,12 @@ function App() {
     return () => disconnectSocket();
   }, []);
 
+  //function setAppHeight() {
+  // document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+  //}
+  //window.addEventListener('resize', setAppHeight);
+  //setAppHeight();
+
   return (
     <div id="main-container">
       <div id="user-chats-container">
