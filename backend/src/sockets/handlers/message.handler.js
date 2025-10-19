@@ -75,7 +75,9 @@ export default function registerMessageHandlers(io) {
         });
 
         setTimeout(async () => {
-          const botContent = `🤖 Got it! You said: "${content}"`;
+          const response = await fetch('https://meowfacts.herokuapp.com/');
+          const catFacts = await response.json();
+          const botContent = `🤖 ${catFacts.data[0]}`;
           const botMessage = await Message.create({
             chatId,
             sender: 'bot',

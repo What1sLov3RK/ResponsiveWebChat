@@ -1,38 +1,30 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
+* { margin: 0; padding: 0; box-sizing: border-box; }
 label { color: deepskyblue; }
 
-html,
-body,
-#root {
+html, body, #root {
   height: 100%;
   width: 100%;
   font-family: "Inter", Arial, sans-serif;
   background-color: #f8f8f8;
   color: #222;
-  overflow: hidden;
   overscroll-behavior: none;
   min-height: 0;
 }
 
-body{
+/* --- App frame --- */
+#main-container {
+  display: flex;
+  width: 100%;
+  height: 100svh;
+  overflow: hidden;
+  background-color: #fff;
+  min-width: 0;
+  min-height: 0;
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-
-#main-container {
-  display: flex;
-  width: 100%;
-  height: 100dvh;
-  overflow: hidden;
-  background-color: #fff;
-}
-
+/* Sidebar + chat list column */
 #user-chats-container {
   display: flex;
   flex-direction: column;
@@ -45,6 +37,7 @@ body{
   z-index: 10;
   transition: transform 0.3s ease;
   min-height: 0;
+  min-width: 0;
 }
 
 #user-panel-container {
@@ -53,20 +46,25 @@ body{
   min-height: 0;
 }
 
+/* Chats column layout */
 #chats-container {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
+
 .chat-list {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
+/* Main chat area */
 #chat-container {
-  flex: 1;
+  flex: 1 1 auto;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -78,7 +76,7 @@ body{
 }
 
 #message-container {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -86,15 +84,16 @@ body{
 
 #sidebar-overlay {
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  inset: 0;
   background: rgba(0,0,0,0.4);
-  opacity: 0; visibility: hidden;
+  opacity: 0;
+  visibility: hidden;
   transition: opacity .3s ease;
   z-index: 5;
 }
 #sidebar-overlay.visible { opacity: 1; visibility: visible; }
 
+/* Burger */
 #toggle-sidebar {
   display: none;
   background: none;
@@ -104,26 +103,14 @@ body{
   cursor: pointer;
 }
 
-@media (max-width: 900px) {
-  #main-container { flex-direction: column; }
-
-  #user-chats-container {
-    width: 100%;
-    height: 45dvh;
-    border-right: none;
-    border-bottom: 1px solid #ccc;
-  }
-  #chat-container { width: 100%; height: 55dvh; }
-}
-
 @media (max-width: 600px) {
   #main-container { position: relative; }
 
   #user-chats-container {
     position: fixed;
     top: 0; left: 0;
-    width: 100dvw;
-    height: 100dvh;
+    width: 100%;
+    height: 100svh;
     background-color: #fff;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
@@ -131,7 +118,12 @@ body{
   }
   #user-chats-container.visible { transform: translateX(0); }
 
-  #chat-container { flex: 1; width: 100%; height: 100%; }
+  #chat-container {
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
 
   #toggle-sidebar { display: block; margin: 10px; }
 

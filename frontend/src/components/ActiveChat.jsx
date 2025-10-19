@@ -5,6 +5,7 @@ import "../css/activeChat.css";
 import ChatInput from "./ChatInput";
 import ChangeChatNameModal from "./ChangeChatNameModal";
 import { toast } from "react-toastify";
+import { observable } from 'mobx';
 
 const SCROLL_THRESHOLD = 150;
 
@@ -33,9 +34,9 @@ const ActiveChat = observer(() => {
   };
 
   useEffect(() => {
-    prevMessagesLengthRef.current = chat?.messages?.length || 0;
-    if (chat) setTimeout(() => scrollToBottom("auto"), 10);
-  }, [chat?._id]);
+    if (!chat?.messages) return;
+    scrollToBottom();
+  }, [chat?.messages?.length]);
 
   useEffect(() => {
     chatStore.initSocket()
@@ -59,7 +60,6 @@ const ActiveChat = observer(() => {
       setTimeout(() => scrollToBottom("smooth"), 10);
     }
   };
-
   const toggleSidebar = () => {
     const sidebar = document.getElementById("user-chats-container");
     const overlay = document.getElementById("sidebar-overlay");
