@@ -10,7 +10,9 @@ const ChatsList = observer(() => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    fetchChats();
+    if(localStorage.getItem('authorized') === 'true') {
+      fetchChats();
+    }
   }, []);
 
   const openModal = () => setIsModalOpen(true);
@@ -18,7 +20,12 @@ const ChatsList = observer(() => {
 
   const handleChatClick = (chat) => {
     setSelectedChat(chat);
-
+      if (window.innerWidth < 768) {
+        const sidebar = document.getElementById("user-chats-container");
+        const overlay = document.getElementById("sidebar-overlay");
+        sidebar?.classList.remove("visible");
+        overlay?.classList.remove("visible");
+    }
   };
 
   const formatDate = (timestamp) => {

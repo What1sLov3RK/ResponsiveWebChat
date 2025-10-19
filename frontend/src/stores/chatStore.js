@@ -17,14 +17,16 @@ class ChatStore {
   }
 
   initSocket = () => {
-    if (this._socketInitialized) return;
+    if (localStorage.getItem('authorized') === 'true') {
+      if (this._socketInitialized) return;
 
-    socket.on("connect", () => console.log("⚡️ Socket connected:", socket.id));
-    connectSocket();
-    registerMessageHandlers(this.handleIncomingMessage);
+      socket.on("connect", () => console.log("⚡️ Socket connected:", socket.id));
+      connectSocket();
+      registerMessageHandlers(this.handleIncomingMessage);
 
-    this._socketInitialized = true;
-  };
+      this._socketInitialized = true;
+    }
+  }
 
   cleanupSocketListeners = () => {
     if (!this._socketInitialized) return;
@@ -91,17 +93,19 @@ class ChatStore {
   };
 
   fetchChats = async () => {
-    try {
-      const res = await api.get("/chat/all-chats");
-      runInAction(() => {
-        this.chats = Array.isArray(res.chats)
-          ? res.chats.map((c) => ({ ...c, messages: c.messages || [] }))
-          : [];
-      });
-    } catch (err) {
-      console.error("Failed to fetch chats:", err);
+    if (localStorage.getItem('authorized') === 'true') {
+      try {
+        const res = await api.get("/chat/all-chats");
+        runInAction(() => {
+          this.chats = Array.isArray(res.chats)
+            ? res.chats.map((c) => ({ ...c, messages: c.messages || [] }))
+            : [];
+        });
+      } catch (err) {
+        console.error("Failed to fetch chats:", err);
+      }
     }
-  };
+  }
 
   sendUserMessage = async (chatId, content) => {
     if (!chatId || !content?.trim()) return;

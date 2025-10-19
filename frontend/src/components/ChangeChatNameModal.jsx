@@ -35,7 +35,7 @@ const ChangeChatNameModal = ({ onClose }) => {
   return (
     <Modal onClose={onClose} name="Rename Chat">
       <form onSubmit={handleSubmit} id="form">
-        <div className="input-container">
+        <div className="modal-input-container">
           <label>First name:</label>
           <Input
             type="text"
@@ -46,7 +46,7 @@ const ChangeChatNameModal = ({ onClose }) => {
           />
         </div>
 
-        <div className="input-container">
+        <div className="modal-input-container">
           <label>Last name:</label>
           <Input
             type="text"

@@ -1,11 +1,35 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+label {
+  color: deepskyblue;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  font-family: "Inter", Arial, sans-serif;
+  background-color: #f8f8f8;
+  color: #222;
+  overflow: hidden;
+  overscroll-behavior: none;
+  min-height: 0;
+}
+
 #active-chat {
   display: grid;
   grid-template-rows: auto 1fr auto;
-  height: 100vh;
+  height: 100dvh;
   width: 100%;
   background-color: #f1f1f1;
   position: relative;
   overflow: hidden;
+  min-height: 0;
 }
 
 #chat-name {
@@ -57,6 +81,9 @@
   scroll-behavior: smooth;
   position: relative;
   z-index: 1;
+
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
 }
 
 .message-item-container {
@@ -125,6 +152,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
 }
 
 #chat-input-container input {
@@ -171,5 +199,3 @@
     display: block;
   }
 }
-
-
