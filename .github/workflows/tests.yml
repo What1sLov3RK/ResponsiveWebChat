@@ -1,0 +1,52 @@
+name: Run Backend Tests & Frontend Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-tests:
+    name: 🧠 Backend Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📦 Install backend dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: 🧪 Run Jest tests
+        working-directory: ./backend
+        env:
+          NODE_OPTIONS: "--experimental-vm-modules"
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: npm test
+
+  frontend-build:
+    name: 🧱 Frontend Build Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📦 Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: 🧩 Build frontend
+        working-directory: ./frontend
+        run: npm run build
