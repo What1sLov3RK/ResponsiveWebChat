@@ -27,8 +27,6 @@ jobs:
         working-directory: ./backend
         env:
           NODE_OPTIONS: "--experimental-vm-modules"
-          MONGO_URI: ${{ secrets.MONGO_URI }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: npm test
 
   frontend-build:
