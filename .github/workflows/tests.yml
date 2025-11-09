@@ -27,7 +27,7 @@ jobs:
         working-directory: ./backend
         env:
           NODE_OPTIONS: "--experimental-vm-modules"
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_ACCESS_SECRET: ${{ secrets.JWT_SECRET }}
           JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
           MONGO_URI: "mongodb://localhost:27017/testdb"
         run: npm test
