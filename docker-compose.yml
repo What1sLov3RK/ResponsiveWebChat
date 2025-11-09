@@ -3,17 +3,17 @@ version: "3.9"
 services:
   backend:
     build:
-      context: frontend
+      context: ./backend
     container_name: webchat-backend
     env_file:
-      - frontend/.env
+      - ./backend/src/config/.env
     ports:
       - "4000:4000"
     restart: always
 
   frontend:
     build:
-      context: backend
+      context: ./frontend
     container_name: webchat-frontend
     ports:
       - "3000:80"
