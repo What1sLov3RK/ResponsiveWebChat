@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+
+# common extras (optional but recommended)
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+.dist
+coverage
+.git
+.gitignore
+Dockerfile
+docker-compose*.yml
