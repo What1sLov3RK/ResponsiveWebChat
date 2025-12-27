@@ -21,4 +21,5 @@ export const config = {
   cookieSecure: process.env.COOKIE_SECURE || true,
   cookieDomain: process.env.COOKIE_DOMAIN,
   node_env: process.env.NODE_ENV,
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 };

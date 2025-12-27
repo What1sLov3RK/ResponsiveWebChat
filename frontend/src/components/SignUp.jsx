@@ -32,17 +32,15 @@ const SignUp = ({ onClose, switchToLogin }) => {
 
       toast.success("Account created successfully! 🎉");
 
+      setSelectedChat(null);
+      setTimeout(() => {
+  chatStore.initSocket();
+}, 500);
       localStorage.setItem("authorized", "true");
       localStorage.setItem(
         "user-info",
         JSON.stringify({ firstname, lastname, email })
       );
-
-      setSelectedChat(null);
-      setTimeout(() => {
-  chatStore.initSocket();
-}, 500);
-
       await new Promise((r) => setTimeout(r, 100));
 
       await fetchChats();

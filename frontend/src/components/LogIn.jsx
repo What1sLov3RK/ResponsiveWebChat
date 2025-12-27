@@ -28,6 +28,12 @@ const LogIn = ({ onClose, switchToSignup }) => {
         return;
       }
 
+      setSelectedChat(null);
+
+      toast.success("Logged in successfully! 🎉");
+      setTimeout(() => {
+  chatStore.initSocket();
+}, 500);
       localStorage.setItem("authorized", "true");
       localStorage.setItem(
         "user-info",
@@ -37,12 +43,6 @@ const LogIn = ({ onClose, switchToSignup }) => {
           email: payload.email,
         })
       );
-
-      toast.success("Logged in successfully! 🎉");
-      setTimeout(() => {
-  chatStore.initSocket();
-}, 500);
-      setSelectedChat(null);
 
       await new Promise((r) => setTimeout(r, 100));
 
