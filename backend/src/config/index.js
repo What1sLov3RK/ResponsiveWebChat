@@ -18,7 +18,7 @@ export const config = {
   dbUrl: process.env.DB_URL,
   jwtAccessSecret: process.env.JWT_ACCESS_SECRET,
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET,
-  cookieSecure: process.env.COOKIE_SECURE ? process.env.COOKIE_SECURE === 'true' : isProd,
+  cookieSecure: process.env.COOKIE_SECURE,
   cookieDomain: process.env.COOKIE_DOMAIN,
   node_env: process.env.NODE_ENV,
   sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
