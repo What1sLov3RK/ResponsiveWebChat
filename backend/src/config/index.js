@@ -12,13 +12,15 @@ const required = (key, value) => {
   return value;
 };
 
+const isProd = process.env.NODE_ENV === 'production';
+
 export const config = {
   port: process.env.PORT || 4000,
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   dbUrl: process.env.DB_URL,
   jwtAccessSecret: process.env.JWT_ACCESS_SECRET,
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET,
-  cookieSecure: process.env.COOKIE_SECURE || true,
+  cookieSecure: process.env.COOKIE_SECURE ? process.env.COOKIE_SECURE === 'true' : isProd,
   cookieDomain: process.env.COOKIE_DOMAIN,
   node_env: process.env.NODE_ENV,
   sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
