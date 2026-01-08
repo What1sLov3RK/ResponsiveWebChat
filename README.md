@@ -18,7 +18,6 @@ Fully Dockerized with Compose and integrated into a CI/CD pipeline that runs aut
 
 - 🔐 **JWT Authentication** — secure registration, login, refresh tokens, and logout  
 - 💬 **Real-time messaging** — powered by Socket.IO  
-- 👥 **Private & group chats**  
 - 🧱 **REST API** for user management and chat history  
 - 🧩 **Modular backend** with Express & Mongoose (MongoDB Atlas)  
 - 🧪 **Automated testing** — Jest + Supertest + MongoDB Memory Server  
@@ -160,3 +159,4 @@ cd ../frontend
 npm install
 npm start
 ```
+
