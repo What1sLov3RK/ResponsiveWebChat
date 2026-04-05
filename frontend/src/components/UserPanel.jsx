@@ -5,7 +5,8 @@ import AuthModal from "./AuthModal";
 import Input from "./Input";
 import chatStore from "../stores/chatStore";
 import { observer } from "mobx-react-lite";
-import api from '../api';
+import { getUserAvatar } from "../utils/chatUtils";
+import api from "../api";
 
 const UserPanel = observer(() => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,9 +50,7 @@ const UserPanel = observer(() => {
     syncUser();
   }, [isModalOpen, syncUser]);
 
-  const profileImageUrl = currentUser?.profileImage
-    ? `${api.defaults.baseURL.replace('/api', '')}${currentUser.profileImage}`
-    : "https://randomuser.me/api/portraits/lego/5.jpg";
+  const profileImageUrl = getUserAvatar(currentUser);
 
   return (
     <div id="user-panel-container">

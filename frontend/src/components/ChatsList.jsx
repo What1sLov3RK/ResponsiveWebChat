@@ -3,7 +3,7 @@ import { observer } from "mobx-react-lite";
 import chatStore from "../stores/chatStore";
 import Button from "./Button";
 import CreateChatModal from "./CreateChatModal";
-import api from '../api';
+import { getChatAvatar } from "../utils/chatUtils";
 import "../css/chats.css";
 
 const ChatsList = observer(() => {
@@ -67,19 +67,6 @@ const ChatsList = observer(() => {
     return other && other.firstname ? `${other.firstname} ${other.lastname}` : chat.name;
   };
 
-  const getChatAvatar = (chat) => {
-    if (!chat) return "https://randomuser.me/api/portraits/lego/5.jpg";
-    if (chat.isBot) {
-      return chat.avatar || "https://randomuser.me/api/portraits/lego/5.jpg";
-    }
-    const myId = String(currentUser?._id || currentUser?.id || "");
-    const other = chat.participants?.find((p) => String(p._id || p) !== myId);
-    if (other && other.profileImage) {
-      return `${api.defaults.baseURL.replace('/api', '')}${other.profileImage}`;
-    }
-    return "https://randomuser.me/api/portraits/lego/5.jpg";
-  };
-
   const chats = Array.isArray(sortedChats) ? sortedChats : [];
   const reversedChats = chats; // Already sorted by updatedAt desc
 
@@ -108,7 +95,7 @@ const ChatsList = observer(() => {
                 <div className="avatar-container">
                   <img
                     className="chat-logo"
-                    src={getChatAvatar(chat)}
+                    src={getChatAvatar(chat, currentUser)}
                     alt="chat avatar"
                   />
                   {isOnline(chat) && <span className="online-indicator"></span>}

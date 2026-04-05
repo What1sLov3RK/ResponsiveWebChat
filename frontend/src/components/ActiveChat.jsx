@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react-lite";
 import chatStore from "../stores/chatStore";
+import { getChatAvatar, getUserAvatar } from "../utils/chatUtils";
 import "../css/activeChat.css";
 import ChatInput from "./ChatInput";
 import ChangeChatNameModal from "./ChangeChatNameModal";
@@ -132,7 +133,7 @@ const ActiveChat = observer(() => {
         >
           {!isMe && (
             <img
-              src={isBot ? "https://xsgames.co/randomusers/assets/avatars/male/38.jpg" : "https://randomuser.me/api/portraits/lego/5.jpg"}
+              src={isBot ? (chat.avatar || "https://xsgames.co/randomusers/assets/avatars/male/38.jpg") : (m.senderId?.profileImage ? getUserAvatar(m.senderId) : "https://randomuser.me/api/portraits/lego/5.jpg")}
               alt="avatar"
               className={isBot ? "bot-avatar" : "user-avatar"}
             />
@@ -150,8 +151,8 @@ const ActiveChat = observer(() => {
     if (isSomeoneTyping) {
       const typingUser = chat?.participants?.find(p => typingUserIds.includes(String(p._id || p)));
       const avatarUrl = isBotTyping 
-        ? "https://xsgames.co/randomusers/assets/avatars/male/38.jpg" 
-        : "https://randomuser.me/api/portraits/lego/5.jpg";
+        ? (chat.avatar || "https://xsgames.co/randomusers/assets/avatars/male/38.jpg") 
+        : getUserAvatar(typingUser);
 
       messageList.push(
         <div key="typing" className="message-item-container from-others typing-indicator-container">
@@ -185,7 +186,7 @@ const ActiveChat = observer(() => {
         {chat ? (
           <>
             <img
-              src="https://xsgames.co/randomusers/assets/avatars/male/38.jpg"
+              src={getChatAvatar(chat, currentUser)}
               alt="chat"
             />
             <div className="chat-header-info">
