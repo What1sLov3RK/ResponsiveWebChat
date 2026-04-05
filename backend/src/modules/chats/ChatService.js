@@ -28,7 +28,21 @@ class ChatService {
   static async createChat(userId, firstname, lastname, isBot = true) {
     const name = `${firstname} ${lastname}`.trim() || (isBot ? 'Bot Chat' : 'New Chat');
     const participants = [userId];
-    const chat = await Chat.create({ name, participants, isBot });
+    let avatar = '';
+    if (isBot) {
+      const botAvatars = [
+        'https://randomuser.me/api/portraits/lego/1.jpg',
+        'https://randomuser.me/api/portraits/lego/2.jpg',
+        'https://randomuser.me/api/portraits/lego/3.jpg',
+        'https://randomuser.me/api/portraits/lego/4.jpg',
+        'https://randomuser.me/api/portraits/lego/5.jpg',
+        'https://randomuser.me/api/portraits/lego/6.jpg',
+        'https://randomuser.me/api/portraits/lego/7.jpg',
+        'https://randomuser.me/api/portraits/lego/8.jpg',
+      ];
+      avatar = botAvatars[Math.floor(Math.random() * botAvatars.length)];
+    }
+    const chat = await Chat.create({ name, participants, isBot, avatar });
     return await chat.populate('participants', 'firstname lastname email');
   }
 

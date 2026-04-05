@@ -94,6 +94,12 @@ class ChatStore {
         if (!isCreator) {
           showInfoToast(`New chat with ${chat.participants.find(p => (p._id || p) !== this.currentUser?._id)?.firstname || 'someone'} created`);
         }
+      } else {
+        // If chat already exists, update its details just in case
+        const index = this.chats.findIndex(c => c._id === chat._id);
+        if (index !== -1) {
+          this.chats[index] = { ...this.chats[index], ...chat };
+        }
       }
     });
   };
@@ -106,6 +112,22 @@ class ChatStore {
         showInfoToast("This chat has been deleted");
       }
     });
+  };
+
+  uploadProfileImage = async (file) => {
+    const formData = new FormData();
+    formData.append('profileImage', file);
+    try {
+      const response = await api.post('/users/profile-image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      runInAction(() => {
+        this.currentUser = response.user;
+        localStorage.setItem('user-info', JSON.stringify(response.user));
+      });
+    } catch (e) {
+      showErrorToast('Failed to upload profile image');
+    }
   };
 
   cleanupSocketListeners = () => {
@@ -255,7 +277,9 @@ class ChatStore {
         return;
       }
       runInAction(() => {
-        this.chats = [newChat, ...this.chats];
+        if (!this.chats.find(c => c._id === newChat._id)) {
+          this.chats = [{ ...newChat, messages: newChat.messages || [] }, ...this.chats];
+        }
       });
       this.setSelectedChat(newChat);
       showSuccessToast(email ? `Chat with ${email} created` : `Chat "${newChat.name}" created`);

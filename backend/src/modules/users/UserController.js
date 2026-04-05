@@ -71,6 +71,19 @@ class UserController {
     logger.info('👋 User logged out successfully');
     return res.status(200).json({ message: 'Logged out successfully' });
   }
+
+  static async uploadProfileImage(req, res) {
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+    const profileImageUrl = `/uploads/profiles/${req.file.filename}`;
+    const user = await UserService.updateProfileImage(userId, profileImageUrl);
+    return res.status(200).json({ message: 'Profile image updated', user });
+  }
 }
 
 export default UserController;

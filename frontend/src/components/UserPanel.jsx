@@ -10,7 +10,7 @@ import api from '../api';
 const UserPanel = observer(() => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
-  const { currentUser, setSelectedChat, cleanupSocketListeners, syncUser, setSearchQuery } = chatStore;
+  const { currentUser, cleanupSocketListeners, syncUser, setSearchQuery, uploadProfileImage } = chatStore;
 
   const openLoginModal = () => {
     setIsSignup(false);
@@ -28,6 +28,19 @@ const UserPanel = observer(() => {
     chatStore.currentUser = null;
   };
 
+  const handleImageClick = () => {
+    if (currentUser) {
+      document.getElementById('profile-image-input').click();
+    }
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      uploadProfileImage(file);
+    }
+  };
+
   const searchChange = (event) => {
     setSearchQuery(event.target.value);
   };
@@ -36,14 +49,27 @@ const UserPanel = observer(() => {
     syncUser();
   }, [isModalOpen, syncUser]);
 
+  const profileImageUrl = currentUser?.profileImage
+    ? `${api.defaults.baseURL.replace('/api', '')}${currentUser.profileImage}`
+    : "https://randomuser.me/api/portraits/lego/5.jpg";
+
   return (
     <div id="user-panel-container">
       <div id="user-profile">
         <div id="user-profile-left">
+          <input
+            type="file"
+            id="profile-image-input"
+            style={{ display: 'none' }}
+            accept="image/*"
+            onChange={handleFileChange}
+          />
           <img
             id="profile-picture"
-            src="https://randomuser.me/api/portraits/lego/5.jpg"
+            src={profileImageUrl}
             alt="profile"
+            onClick={handleImageClick}
+            style={{ cursor: currentUser ? 'pointer' : 'default' }}
           />
           <span className="user-name">
             {currentUser ? `${currentUser.firstname} ${currentUser.lastname}` : "Guest"}

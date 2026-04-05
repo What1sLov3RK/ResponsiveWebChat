@@ -27,8 +27,25 @@ class UserService {
     await user.save();
 
     const defaultChats = ['Gimmel', 'Aizen', 'Frieren'];
+    const botAvatars = [
+      'https://randomuser.me/api/portraits/lego/1.jpg',
+      'https://randomuser.me/api/portraits/lego/2.jpg',
+      'https://randomuser.me/api/portraits/lego/3.jpg',
+      'https://randomuser.me/api/portraits/lego/4.jpg',
+      'https://randomuser.me/api/portraits/lego/5.jpg',
+      'https://randomuser.me/api/portraits/lego/6.jpg',
+      'https://randomuser.me/api/portraits/lego/7.jpg',
+      'https://randomuser.me/api/portraits/lego/8.jpg',
+    ];
     await Promise.all(
-      defaultChats.map((name) => Chat.create({ name, participants: [user._id], isBot: true })),
+      defaultChats.map((name) =>
+        Chat.create({
+          name,
+          participants: [user._id],
+          isBot: true,
+          avatar: botAvatars[Math.floor(Math.random() * botAvatars.length)],
+        }),
+      ),
     );
 
     return { ...tokens, user };
@@ -122,6 +139,18 @@ class UserService {
       user.refresh_token = null;
       await user.save();
     }
+  }
+
+  static async updateProfileImage(userId, profileImage) {
+    const user = await User.findById(userId);
+    if (!user) {
+      const error = new Error('User not found');
+      error.status = 404;
+      throw error;
+    }
+    user.profileImage = profileImage;
+    await user.save();
+    return user;
   }
 }
 

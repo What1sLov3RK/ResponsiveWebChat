@@ -5,6 +5,7 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   firstname: { type: String },
   lastname: { type: String },
+  profileImage: { type: String, default: '' },
   refresh_token: { type: String, default: '' },
 }, { timestamps: true });
 
