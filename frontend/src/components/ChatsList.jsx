@@ -13,6 +13,7 @@ const ChatsList = observer(() => {
     if(localStorage.getItem('authorized') === 'true') {
       fetchChats();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const openModal = () => setIsModalOpen(true);
@@ -20,18 +21,22 @@ const ChatsList = observer(() => {
 
   const handleChatClick = (chat) => {
     setSelectedChat(chat);
-      if (window.innerWidth < 768) {
-        const sidebar = document.getElementById("user-chats-container");
-        const overlay = document.getElementById("sidebar-overlay");
-        sidebar?.classList.remove("visible");
-        overlay?.classList.remove("visible");
-    }
   };
 
   const formatDate = (timestamp) => {
     if (!timestamp) return "";
-    return new Date(timestamp).toLocaleDateString("en-US", {
-      year: "numeric",
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+    const oneDay = 24 * 60 * 60 * 1000;
+
+    if (diff < oneDay && now.getDate() === date.getDate()) {
+      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+    if (diff < 2 * oneDay) {
+      return "Yesterday";
+    }
+    return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
     });
@@ -81,7 +86,10 @@ const ChatsList = observer(() => {
             );
           })
         ) : (
-          <p className="no-chats-placeholder"></p>
+          <div className="no-chats-placeholder">
+            <p>No chats found.</p>
+            <p style={{ fontSize: '0.8rem' }}>Create one to start!</p>
+          </div>
         )}
       </div>
     </div>

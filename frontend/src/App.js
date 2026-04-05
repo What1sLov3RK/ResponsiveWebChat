@@ -1,33 +1,32 @@
 import { useEffect } from "react";
+import { observer } from "mobx-react-lite";
+import chatStore from "./stores/chatStore";
 import "./css/App.css";
 import UserPanel from "./components/UserPanel";
 import ChatsList from "./components/ChatsList";
 import ActiveChat from "./components/ActiveChat";
-import { socket, connectSocket, disconnectSocket } from "./services/socket";
 
-function App() {
+const App = observer(() => {
+  const { isSidebarVisible, setIsSidebarVisible, initSocket } = chatStore;
+
   useEffect(() => {
-    const token = localStorage.getItem("access-token");
-    connectSocket(token);
-
-    socket.on("connect", () => console.log("✅ Connected to Socket.IO"));
-    socket.on("disconnect", () => console.log("🔌 Disconnected from Socket.IO"));
-    socket.on("newMessage", (msg) => {
-      console.log("📩 New message received:", msg);
-    });
-
-    return () => disconnectSocket();
-  }, []);
-
+    initSocket();
+    
     function setAppHeight() {
-    document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+      document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
     }
     window.addEventListener('resize', setAppHeight);
     setAppHeight();
 
+    return () => {
+      window.removeEventListener('resize', setAppHeight);
+    }
+  }, [initSocket]);
+
   return (
     <div id="main-container">
-      <div id="user-chats-container">
+      <div id="sidebar-overlay" className={isSidebarVisible ? "visible" : ""} onClick={() => setIsSidebarVisible(false)} />
+      <div id="user-chats-container" className={isSidebarVisible ? "visible" : ""}>
         <UserPanel />
         <ChatsList />
       </div>
@@ -36,6 +35,6 @@ function App() {
       </div>
     </div>
   );
-}
+});
 
 export default App;

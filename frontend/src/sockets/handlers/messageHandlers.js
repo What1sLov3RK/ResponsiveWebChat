@@ -1,10 +1,10 @@
 import { socket } from "../socket";
 import { SOCKET_EVENTS } from "../constants/socketEvents";
-import { toast } from "react-toastify";
+import { showErrorToast } from "../../utils/toastHelper";
 
 export const registerMessageHandlers = (onMessageReceived) => {
   socket.on(SOCKET_EVENTS.RECEIVE_MESSAGE, onMessageReceived);
-  socket.on(SOCKET_EVENTS.ERROR_MESSAGE, (msg) => toast.error(msg));
+  socket.on(SOCKET_EVENTS.ERROR_MESSAGE, (msg) => showErrorToast(msg));
 };
 
 export const unregisterMessageHandlers = () => {

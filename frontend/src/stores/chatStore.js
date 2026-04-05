@@ -1,6 +1,6 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import api from "../api";
-import { toast } from "react-toastify";
+import { showErrorToast, showSuccessToast, showInfoToast } from "../utils/toastHelper";
 import { connectSocket, disconnectSocket, socket } from "../sockets/socket";
 import { registerMessageHandlers, unregisterMessageHandlers } from "../sockets/handlers/messageHandlers";
 import { emitJoinChat, emitSendMessage } from "../sockets/emitters";
@@ -10,6 +10,8 @@ class ChatStore {
   selectedChat = null;
   searchQuery = "";
   error = null;
+  isBotTyping = false;
+  isSidebarVisible = false;
   _socketInitialized = false;
 
   constructor() {
@@ -21,7 +23,9 @@ class ChatStore {
       if (this._socketInitialized) return;
 
       socket.on("connect", () => console.log("⚡️ Socket connected:", socket.id));
-      connectSocket();
+      connectSocket().catch((err) => {
+        console.error("Failed to connect socket:", err);
+      });
       registerMessageHandlers(this.handleIncomingMessage);
 
       this._socketInitialized = true;
@@ -52,9 +56,12 @@ class ChatStore {
           this.selectedChat = updatedChat;
         }
 
-        if (message.sender === "bot") {
-          toast.info(message.content, { autoClose: 1500 });
+      if (message.sender === "bot") {
+        this.isBotTyping = false;
+        if (this.selectedChat?._id !== message.chatId) {
+          showInfoToast(message.content, { autoClose: 1500 });
         }
+      }
       } else {
         console.warn(" Received message for unknown chat:", message.chatId);
       }
@@ -63,6 +70,9 @@ class ChatStore {
 
   setSearchQuery = (q) => {
     this.searchQuery = q.toLowerCase();
+  };
+  setIsSidebarVisible = (visible) => {
+    this.isSidebarVisible = visible;
   };
 
   get filteredChats() {
@@ -86,6 +96,7 @@ class ChatStore {
 
   setSelectedChat = (chat) => {
     this.selectedChat = chat;
+    this.isSidebarVisible = false; // Auto-close sidebar on mobile
     if (chat?._id) {
       emitJoinChat(chat._id);
       this.fetchMessages(chat._id);
@@ -109,25 +120,24 @@ class ChatStore {
 
   sendUserMessage = async (chatId, content) => {
     if (!chatId || !content?.trim()) return;
+    this.isBotTyping = true;
     emitSendMessage(chatId, content.trim());
   };
-
   createChat = async (firstname, lastname) => {
     try {
       const res = await api.post("/chat/create", { firstname, lastname });
       const newChat = res.chat || res;
       if (!newChat?._id) {
-        toast.error("Failed to create chat");
+        showErrorToast("Failed to create chat");
         return;
       }
       runInAction(() => {
         this.chats = [newChat, ...this.chats];
-        this.selectedChat = newChat;
       });
-      emitJoinChat(newChat._id);
-      toast.success(`Chat "${newChat.name}" created`);
+      this.setSelectedChat(newChat);
+      showSuccessToast(`Chat "${newChat.name}" created`);
     } catch (e) {
-      toast.error(e.response?.data?.error || "Failed to create chat");
+      showErrorToast(e.response?.data?.error || "Failed to create chat");
     }
   };
 
@@ -141,10 +151,10 @@ class ChatStore {
           this.selectedChat = { ...this.selectedChat, name: newName };
         }
       });
-      toast.success("Chat renamed");
+      showSuccessToast("Chat renamed");
     } catch (e) {
       console.error("Failed to rename chat:", e);
-      toast.error(e.response?.data?.error || "Failed to rename chat");
+      showErrorToast(e.response?.data?.error || "Failed to rename chat");
     }
   };
 
@@ -155,10 +165,10 @@ class ChatStore {
         this.chats = this.chats.filter((c) => c._id !== chatId);
         if (this.selectedChat?._id === chatId) this.selectedChat = null;
       });
-      toast.success("Chat deleted");
+      showSuccessToast("Chat deleted");
     } catch (e) {
       console.error("Failed to delete chat:", e);
-      toast.error(e.response?.data?.error || "Failed to delete chat");
+      showErrorToast(e.response?.data?.error || "Failed to delete chat");
     }
   };
 }

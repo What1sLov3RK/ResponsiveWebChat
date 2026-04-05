@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import "../css/chatInput.css";
 import Input from "./Input";
 
-const ChatInput = ({ onChange, value, placeholder, onKeyDown }) => {
+const ChatInput = forwardRef(({ onChange, value, placeholder, onKeyDown }, ref) => {
     return (
         <div className="input-wrapper">
             <Input
+                ref={ref}
                 type="text"
                 onChange={onChange}
                 onKeyDown={onKeyDown}
@@ -15,6 +16,6 @@ const ChatInput = ({ onChange, value, placeholder, onKeyDown }) => {
             />
         </div>
     );
-};
+});
 
 export default ChatInput;

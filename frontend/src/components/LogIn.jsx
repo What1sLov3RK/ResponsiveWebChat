@@ -3,7 +3,7 @@ import "../css/modal.css";
 import Input from "./Input";
 import Button from "./Button";
 import api from "../api";
-import { toast } from "react-toastify";
+import { showErrorToast, showSuccessToast } from "../utils/toastHelper";
 import chatStore from "../stores/chatStore";
 
 const LogIn = ({ onClose, switchToSignup }) => {
@@ -24,13 +24,13 @@ const LogIn = ({ onClose, switchToSignup }) => {
       const res = await api.post("/users/login", payload);
 
       if (res?.error) {
-        toast.error(res.error || "Invalid email or password");
+        showErrorToast(res.error || "Invalid email or password");
         return;
       }
 
       setSelectedChat(null);
 
-      toast.success("Logged in successfully! 🎉");
+      showSuccessToast("Logged in successfully! 🎉");
       setTimeout(() => {
   chatStore.initSocket();
 }, 500);
@@ -53,13 +53,15 @@ const LogIn = ({ onClose, switchToSignup }) => {
       const status = error.response?.status;
 
       if (status === 401) {
-        toast.error("Invalid email or password");
+        showErrorToast("Invalid email or password");
       } else if (status === 429) {
-        toast.error("Too many login attempts. Try again later.");
+        showErrorToast("Too many login attempts. Try again later.");
+      } else if (Array.isArray(res?.details)) {
+        showErrorToast("Validation failed", res.details);
       } else if (res?.error) {
-        toast.error(res.error);
+        showErrorToast(res.error);
       } else {
-        toast.error("Failed to log in. Please try again later.");
+        showErrorToast("Failed to log in. Please try again later.");
       }
     } finally {
       setLoading(false);
@@ -67,22 +69,29 @@ const LogIn = ({ onClose, switchToSignup }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} noValidate autoComplete="off">
-      <div className="modal-input-container">
+    <form onSubmit={handleSubmit} method="POST" noValidate>
+      <div className="input-container">
         <label>Email:</label>
         <Input
           type="email"
+          name="email"
+          id="login-email"
+          autoComplete="username"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Enter your email"
           required
+          autoFocus
         />
       </div>
 
-      <div className="modal-input-container">
+      <div className="input-container">
         <label>Password:</label>
         <Input
           type="password"
+          name="password"
+          id="login-password"
+          autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Enter your password"
@@ -102,6 +111,7 @@ const LogIn = ({ onClose, switchToSignup }) => {
           name="Sign Up"
           onClick={switchToSignup}
           disabled={loading}
+          className="secondary-button"
         />
       </div>
     </form>

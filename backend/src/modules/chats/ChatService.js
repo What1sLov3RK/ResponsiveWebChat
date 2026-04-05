@@ -4,24 +4,19 @@ import { logger } from '../../logger.js';
 
 class ChatService {
   static async getAllChats(userId) {
-    try {
-      if (!userId) {
-        throw new Error('Missing userId in ChatService.getAllChats');
-      }
-
-      const chats = await Chat.find({ user: userId })
-        .populate({
-          path: 'messages',
-          options: { sort: { createdAt: 1 } },
-        })
-        .lean()
-        .exec();
-
-      return chats;
-    } catch (err) {
-      logger.error('❌ getAllChats failed:', err.message);
-      throw new Error('Database query failed in getAllChats');
+    if (!userId) {
+      throw new Error('Missing userId in ChatService.getAllChats');
     }
+
+    const chats = await Chat.find({ user: userId })
+      .populate({
+        path: 'messages',
+        options: { sort: { createdAt: 1 } },
+      })
+      .lean()
+      .exec();
+
+    return chats;
   }
 
   static async createChat(userId, firstname, lastname) {
@@ -30,12 +25,12 @@ class ChatService {
     return chat;
   }
 
-  static async renameChat(chatId, newChatName) {
-    return Chat.findByIdAndUpdate(chatId, { name: newChatName }, { new: true });
+  static async renameChat(chatId, userId, newChatName) {
+    return Chat.findOneAndUpdate({ _id: chatId, user: userId }, { name: newChatName }, { new: true });
   }
 
-  static async deleteChat(chatId) {
-    await Chat.findByIdAndDelete(chatId);
+  static async deleteChat(chatId, userId) {
+    await Chat.findOneAndDelete({ _id: chatId, user: userId });
   }
 }
 

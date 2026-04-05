@@ -1,7 +1,29 @@
 import { io } from "socket.io-client";
 
-const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || "http://localhost:4000";
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:4000/api";
+const getSocketUrl = () => {
+  const envUrl = process.env.REACT_APP_BACKEND_SOCKET_URL || process.env.REACT_APP_SOCKET_URL;
+  if (envUrl && !envUrl.includes("localhost")) return envUrl;
+
+  const { hostname, protocol } = window.location;
+  if (hostname !== "localhost" && hostname !== "127.0.0.1") {
+    return `${protocol}//${hostname}:4000`;
+  }
+  return envUrl || "http://localhost:4000";
+};
+
+const getApiUrl = () => {
+  const envUrl = process.env.REACT_APP_API_URL;
+  if (envUrl && !envUrl.includes("localhost")) return envUrl;
+
+  const { hostname, protocol } = window.location;
+  if (hostname !== "localhost" && hostname !== "127.0.0.1") {
+    return `${protocol}//${hostname}:4000/api`;
+  }
+  return envUrl || "http://localhost:4000/api";
+};
+
+const SOCKET_URL = getSocketUrl();
+const API_URL = getApiUrl();
 
 export const socket = io(SOCKET_URL, {
   transports: ["websocket"],
@@ -16,23 +38,30 @@ socket.onAny((event, ...args) => console.log("📡 Event:", event, args));
 
 /**
  * Connects socket with JWT cookie handshake.
- * Automatically retries after token refresh if needed.
+ * Automatically retries once after token refresh if unauthorized.
  */
-export const connectSocket = async () => {
-  if (socket.connected) return console.log("⚡️ Already connected");
+export const connectSocket = async (retryCount = 0) => {
+  if (socket.connected) return socket;
 
   return new Promise((resolve, reject) => {
-    socket.once("connect", () => {
+    const cleanup = () => {
+      socket.off("connect", onConnect);
+      socket.off("connect_error", onConnectError);
+    };
+
+    const onConnect = () => {
       console.log("✅ Socket handshake successful");
+      cleanup();
       resolve(socket);
-    });
+    };
 
-    socket.once("connect_error", async (err) => {
+    const onConnectError = async (err) => {
       console.warn("⚠️ Socket connect error:", err.message);
+      cleanup();
 
-      if (String(err.message).toLowerCase().includes("unauthorized")) {
+      if (String(err.message).toLowerCase().includes("unauthorized") && retryCount < 1) {
         try {
-          console.log("🔄 Attempting to refresh tokens...");
+          console.log("🔄 Attempting to refresh tokens (Socket)...");
           const response = await fetch(`${API_URL}/users/refresh`, {
             method: "POST",
             credentials: "include",
@@ -41,22 +70,28 @@ export const connectSocket = async () => {
           });
 
           if (response.ok) {
-            console.log("✅ Token refreshed, reconnecting socket...");
-            socket.connect();
+            console.log("✅ Token refreshed, retrying socket connection...");
+            resolve(connectSocket(retryCount + 1));
           } else {
-            console.error("🚫 Refresh failed with status:", response.status);
+            console.error("🚫 Socket refresh failed with status:", response.status);
+            if (window.location.pathname !== "/") {
+              window.location.replace("/");
+            }
             reject(new Error("Refresh failed"));
           }
         } catch (refreshErr) {
-          console.error("🚫 Token refresh failed:", refreshErr.message);
+          console.error("🚫 Socket token refresh failed:", refreshErr.message);
           reject(refreshErr);
         }
       } else {
         reject(err);
       }
-    });
+    };
 
-    console.log("📡 Connecting socket to:", SOCKET_URL);
+    socket.on("connect", onConnect);
+    socket.on("connect_error", onConnectError);
+
+    console.log("📡 Connecting socket to:", SOCKET_URL, `(attempt ${retryCount + 1})`);
     socket.connect();
   });
 };

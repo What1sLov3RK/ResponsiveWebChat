@@ -2,28 +2,34 @@ import React, { useState } from "react";
 import Modal from "./Modal";
 import Input from "./Input";
 import Button from "./Button";
-import { toast } from "react-toastify";
+import { showErrorToast } from "../utils/toastHelper";
 import chatStore from "../stores/chatStore";
-import "../css/form.css";
 
 const ChangeChatNameModal = ({ onClose }) => {
   const { changeChatName, selectedChat, deleteChat, setSelectedChat } =
     chatStore;
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+
+  const [firstName, setFirstName] = useState(
+    selectedChat?.firstname || ""
+  );
+  const [lastName, setLastName] = useState(
+    selectedChat?.lastname || ""
+  );
 
   const handleDeleteChat = async (event) => {
     event.preventDefault();
-    await deleteChat(selectedChat._id);
-    setSelectedChat(null);
-    onClose();
+    if (window.confirm("Are you sure you want to delete this chat?")) {
+      await deleteChat(selectedChat._id);
+      setSelectedChat(null);
+      onClose();
+    }
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (!firstName.trim()) {
-      toast.error("Please enter a name");
+      showErrorToast("Please enter a name");
       return;
     }
 
@@ -34,8 +40,8 @@ const ChangeChatNameModal = ({ onClose }) => {
 
   return (
     <Modal onClose={onClose} name="Rename Chat">
-      <form onSubmit={handleSubmit} id="form">
-        <div className="modal-input-container">
+      <form onSubmit={handleSubmit}>
+        <div className="input-container">
           <label>First name:</label>
           <Input
             type="text"
@@ -43,10 +49,11 @@ const ChangeChatNameModal = ({ onClose }) => {
             onChange={(e) => setFirstName(e.target.value)}
             placeholder="Enter first name"
             required
+            autoFocus
           />
         </div>
 
-        <div className="modal-input-container">
+        <div className="input-container">
           <label>Last name:</label>
           <Input
             type="text"
@@ -60,7 +67,6 @@ const ChangeChatNameModal = ({ onClose }) => {
           <Button
             type="submit"
             name="Rename Chat"
-            className="margin-right-10px"
           />
           <Button
             onClick={handleDeleteChat}

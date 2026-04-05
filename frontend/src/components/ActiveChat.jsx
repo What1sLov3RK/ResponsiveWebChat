@@ -4,20 +4,21 @@ import chatStore from "../stores/chatStore";
 import "../css/activeChat.css";
 import ChatInput from "./ChatInput";
 import ChangeChatNameModal from "./ChangeChatNameModal";
-import { toast } from "react-toastify";
+import { showInfoToast } from "../utils/toastHelper";
 
 const SCROLL_THRESHOLD = 150;
 
 const ActiveChat = observer(() => {
-  const { selectedChat, chats, sendUserMessage, initSocket } = chatStore;
+  const { selectedChat, chats, sendUserMessage, isBotTyping, isSidebarVisible, setIsSidebarVisible } = chatStore;
   const chat = chats.find((c) => c._id === selectedChat?._id) || selectedChat;
 
   const [newMessage, setNewMessage] = useState("");
   const [showRenameModal, setShowRenameModal] = useState(false);
-  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
   const messageContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
 
   const scrollToBottom = (smooth = true) => {
     messagesEndRef.current?.scrollIntoView({
@@ -33,25 +34,35 @@ const ActiveChat = observer(() => {
     return distance < SCROLL_THRESHOLD;
   };
 
-  useEffect(() => {
-    initSocket();
-  }, [initSocket]);
+  const handleScroll = () => {
+    setShowScrollButton(!isUserNearBottom());
+  };
 
   useEffect(() => {
     if (!chat?.messages) return;
     const nearBottom = isUserNearBottom();
     if (nearBottom) scrollToBottom(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chat?.messages?.length]);
 
   useEffect(() => {
-    if (chat?._id) scrollToBottom(false);
+    if (chat?._id) {
+      scrollToBottom(false);
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
   }, [chat?._id]);
+
+  useEffect(() => {
+    if (isBotTyping) {
+      scrollToBottom(true);
+    }
+  }, [isBotTyping]);
 
   const handleSend = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (!chat?._id) return toast.info("Select a chat first");
-      if (!newMessage.trim()) return toast.info("Write something first");
+      if (!chat?._id) return showInfoToast("Select a chat first");
+      if (!newMessage.trim()) return showInfoToast("Write something first");
 
       const msg = newMessage.trim();
       setNewMessage("");
@@ -61,31 +72,18 @@ const ActiveChat = observer(() => {
   };
 
   const toggleSidebar = () => {
-    const sidebar = document.getElementById("user-chats-container");
-    const overlay = document.getElementById("sidebar-overlay");
-    if (!sidebar || !overlay) return;
-
-    const visible = !isSidebarVisible;
-    sidebar.classList.toggle("visible", visible);
-    overlay.classList.toggle("visible", visible);
-    setIsSidebarVisible(visible);
-  };
-
-  const handleOverlayClick = () => {
-    const sidebar = document.getElementById("user-chats-container");
-    const overlay = document.getElementById("sidebar-overlay");
-    sidebar?.classList.remove("visible");
-    overlay?.classList.remove("visible");
-    setIsSidebarVisible(false);
+    setIsSidebarVisible(!isSidebarVisible);
   };
 
   const renderMessages = () => {
-    if (!chat?.messages?.length)
+    if (!chat?.messages?.length && !isBotTyping)
       return (
-        <p style={{ textAlign: "center", color: "#999" }}>No messages yet</p>
+        <div className="empty-chat-state">
+          <p>No messages yet. Say hi! 👋</p>
+        </div>
       );
 
-    return chat.messages.map((m) => {
+    const messageList = chat?.messages?.map((m) => {
       const isUser = m.sender === "user";
       const time = new Date(m.timestamp || m.createdAt).toLocaleTimeString([], {
         hour: "2-digit",
@@ -95,7 +93,7 @@ const ActiveChat = observer(() => {
       return (
         <div
           key={m._id ?? Math.random()}
-          className={`message-item-container ${isUser ? "from-user" : "from-bot"}`}
+          className={`message-item-container ${isUser ? "from-user" : "from-bot"} animate-message`}
         >
           {!isUser && (
             <img
@@ -107,11 +105,31 @@ const ActiveChat = observer(() => {
             <div className={isUser ? "user-message" : "bot-message"}>
               {m.content}
             </div>
-            <span className="message-date">{time}</span>
+            <span className={`message-date ${isUser ? "user-message-date" : ""}`}>{time}</span>
           </div>
         </div>
       );
-    });
+    }) || [];
+
+    if (isBotTyping) {
+      messageList.push(
+        <div key="typing" className="message-item-container from-bot typing-indicator-container">
+          <img
+            src="https://xsgames.co/randomusers/assets/avatars/male/38.jpg"
+            alt="bot"
+          />
+          <div className="message-item">
+            <div className="bot-message typing-indicator">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return messageList;
   };
 
   return (
@@ -127,27 +145,37 @@ const ActiveChat = observer(() => {
               src="https://xsgames.co/randomusers/assets/avatars/male/38.jpg"
               alt="chat"
             />
-            <h2>{chat.name}</h2>
+            <div className="chat-header-info">
+              <h2>{chat.name}</h2>
+              {isBotTyping && <span className="typing-text">bot is typing...</span>}
+            </div>
             <div
               id="change-chat-name"
               onClick={() => setShowRenameModal(true)}
             />
           </>
         ) : (
-          <h2 style={{ color: "deepskyblue", marginLeft: 10 }}>
-            Select or create a chat
+          <h2 className="select-chat-hint">
+            Select or create a chat to start messaging
           </h2>
         )}
       </div>
 
-      <div id="message-container" ref={messageContainerRef}>
+      <div id="message-container" ref={messageContainerRef} onScroll={handleScroll}>
         {renderMessages()}
         <div ref={messagesEndRef} />
       </div>
 
+      {showScrollButton && (
+        <button className="scroll-bottom-btn" onClick={() => scrollToBottom(true)}>
+          ↓
+        </button>
+      )}
+
       {chat && (
         <div id="chat-input-container">
           <ChatInput
+            ref={inputRef}
             placeholder="Type your message..."
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
@@ -161,8 +189,6 @@ const ActiveChat = observer(() => {
           <ChangeChatNameModal onClose={() => setShowRenameModal(false)} />
         </div>
       )}
-
-      <div id="sidebar-overlay" onClick={handleOverlayClick}></div>
     </div>
   );
 });

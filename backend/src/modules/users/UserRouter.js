@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
 import UserController from './UserController.js';
 import { logger } from '../../logger.js';
+import asyncHandler from '../../utils/asyncHandler.js';
 
 const router = Router();
 
@@ -28,7 +29,7 @@ router.post(
     body('lastname').trim().notEmpty().withMessage('Last name is required'),
   ],
   validateRequest,
-  UserController.register,
+  asyncHandler(UserController.register),
 );
 
 router.post(
@@ -40,11 +41,11 @@ router.post(
       .withMessage('Password must be at least 8 characters long'),
   ],
   validateRequest,
-  UserController.login,
+  asyncHandler(UserController.login),
 );
 
-router.post('/refresh', validateRequest, UserController.refreshToken);
+router.post('/refresh', validateRequest, asyncHandler(UserController.refreshToken));
 
-router.get('/logout', validateRequest, UserController.logout);
+router.get('/logout', validateRequest, asyncHandler(UserController.logout));
 
 export default router;

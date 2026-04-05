@@ -244,3 +244,14 @@
 }
 
 
+
+.no-chats-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #aaa;
+  font-size: 0.9rem;
+  text-align: center;
+}

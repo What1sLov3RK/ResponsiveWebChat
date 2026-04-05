@@ -9,7 +9,14 @@ import registerMessageHandlers from './handlers/message.handler.js';
 export const initSocket = (httpServer) => {
   const io = new Server(httpServer, {
     cors: {
-      origin: config.corsOrigin || 'http://localhost:3000',
+      origin: (origin, callback) => {
+        const allowedOrigins = [config.corsOrigin, 'http://localhost:3000', 'http://127.0.0.1:3000'];
+        if (!origin || config.node_env !== 'production' || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error('Origin not allowed by CORS'));
+        }
+      },
       methods: ['GET', 'POST'],
       credentials: true,
     },

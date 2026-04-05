@@ -4,16 +4,13 @@ import "../css/modal.css";
 
 const modalRoot = document.getElementById("modal-root");
 
-const Modal = ({ onClose, children, name }) => {
+const Modal = ({ onClose, children, name, footer, showCloseIcon = true }) => {
   if (!modalRoot) return null;
 
   return createPortal(
     <div
       className="modal-overlay"
-      onClick={(e) => {
-        e.stopPropagation();
-        onClose?.();
-      }}
+      onClick={onClose}
       role="dialog"
       aria-modal="true"
     >
@@ -22,15 +19,21 @@ const Modal = ({ onClose, children, name }) => {
         onClick={(e) => e.stopPropagation()}
         role="document"
       >
-        {name ? <h2 className="modal-name">{name}</h2> : null}
-        {children}
-        <button
-          type="button"
-          className="modal-close-button"
-          onClick={onClose}
-        >
-          Close
-        </button>
+        <div className="modal-header">
+          {name && <h2 className="modal-name">{name}</h2>}
+          {showCloseIcon && (
+            <button
+              type="button"
+              className="modal-close-icon"
+              onClick={onClose}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+          )}
+        </div>
+        <div className="modal-body">{children}</div>
+        {footer && <div className="modal-footer">{footer}</div>}
       </div>
     </div>,
     modalRoot
