@@ -1,5 +1,6 @@
 # System
 .DS_Store
+.idea/
 
 # Docker
 *.pid
@@ -14,5 +15,6 @@ docker-data/
 
 # Node modules in subfolders (fallback)
 **/node_modules/
+**/package-lock.json
 **/build/
 **/dist/
