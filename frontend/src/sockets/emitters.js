@@ -10,3 +10,11 @@ export const emitSendMessage = (chatId, content) => {
   socket.emit(SOCKET_EVENTS.SEND_MESSAGE, { chatId, content });
   console.log("📡 Emitted SEND_MESSAGE:", { chatId, content });
 };
+
+export const emitTypingStart = (chatId) => {
+  socket.emit(SOCKET_EVENTS.TYPING_START, chatId);
+};
+
+export const emitTypingStop = (chatId) => {
+  socket.emit(SOCKET_EVENTS.TYPING_STOP, chatId);
+};

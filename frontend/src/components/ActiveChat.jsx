@@ -9,8 +9,30 @@ import { showInfoToast } from "../utils/toastHelper";
 const SCROLL_THRESHOLD = 150;
 
 const ActiveChat = observer(() => {
-  const { selectedChat, chats, sendUserMessage, isBotTyping, isSidebarVisible, setIsSidebarVisible } = chatStore;
+  const { selectedChat, chats, sendUserMessage, isBotTyping, typingStatus, isSidebarVisible, setIsSidebarVisible, currentUser, onlineUsers } = chatStore;
   const chat = chats.find((c) => c._id === selectedChat?._id) || selectedChat;
+
+  const typingUserIds = typingStatus[chat?._id] || [];
+  const isSomeoneTyping = isBotTyping || typingUserIds.length > 0;
+
+  const isOnline = (chat) => {
+    if (!chat) return false;
+    if (chat.isBot) return true;
+    const myId = String(currentUser?._id || currentUser?.id || "");
+    if (!myId) return false;
+    const other = chat.participants?.find((p) => String(p._id || p) !== myId);
+    const otherId = other?._id || other;
+    return otherId && !!onlineUsers[String(otherId)];
+  };
+
+  const getChatName = (chat) => {
+    if (!chat) return "";
+    if (chat.isBot || !chat.participants) return chat.name;
+    const myId = String(currentUser?._id || currentUser?.id || "");
+    if (!myId) return chat.name;
+    const other = chat.participants.find((p) => String(p._id || p) !== myId);
+    return other && other.firstname ? `${other.firstname} ${other.lastname}` : chat.name;
+  };
 
   const [newMessage, setNewMessage] = useState("");
   const [showRenameModal, setShowRenameModal] = useState(false);
@@ -53,10 +75,10 @@ const ActiveChat = observer(() => {
   }, [chat?._id]);
 
   useEffect(() => {
-    if (isBotTyping) {
+    if (isBotTyping || typingUserIds.length > 0) {
       scrollToBottom(true);
     }
-  }, [isBotTyping]);
+  }, [isBotTyping, typingUserIds.length]);
 
   const handleSend = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -76,7 +98,7 @@ const ActiveChat = observer(() => {
   };
 
   const renderMessages = () => {
-    if (!chat?.messages?.length && !isBotTyping)
+    if (!chat?.messages?.length && !isSomeoneTyping)
       return (
         <div className="empty-chat-state">
           <p>No messages yet. Say hi! 👋</p>
@@ -84,46 +106,67 @@ const ActiveChat = observer(() => {
       );
 
     const messageList = chat?.messages?.map((m) => {
-      const isUser = m.sender === "user";
+      const myId = String(currentUser?._id || currentUser?.id || "");
+      const isMe =
+        m.sender === "user" &&
+        myId && String(m.senderId || m.userId || "") === myId;
+      const isBot = m.sender === "bot";
+      const isOtherUser = m.sender === "user" && !isMe;
+      
       const time = new Date(m.timestamp || m.createdAt).toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
       });
 
+      let bubbleClass = "bot-message";
+      if (isMe) bubbleClass = "user-message";
+      if (isOtherUser) bubbleClass = "other-user-message";
+
+      let containerClass = "from-others";
+      if (isMe) containerClass = "from-me";
+
       return (
         <div
           key={m._id ?? Math.random()}
-          className={`message-item-container ${isUser ? "from-user" : "from-bot"} animate-message`}
+          className={`message-item-container ${containerClass} animate-message`}
         >
-          {!isUser && (
+          {!isMe && (
             <img
-              src="https://xsgames.co/randomusers/assets/avatars/male/38.jpg"
-              alt="bot"
+              src={isBot ? "https://xsgames.co/randomusers/assets/avatars/male/38.jpg" : "https://randomuser.me/api/portraits/lego/5.jpg"}
+              alt="avatar"
+              className={isBot ? "bot-avatar" : "user-avatar"}
             />
           )}
           <div className="message-item">
-            <div className={isUser ? "user-message" : "bot-message"}>
+            <div className={bubbleClass}>
               {m.content}
             </div>
-            <span className={`message-date ${isUser ? "user-message-date" : ""}`}>{time}</span>
+            <span className={`message-date ${isMe ? "user-message-date" : ""}`}>{time}</span>
           </div>
         </div>
       );
     }) || [];
 
-    if (isBotTyping) {
+    if (isSomeoneTyping) {
+      const typingUser = chat?.participants?.find(p => typingUserIds.includes(String(p._id || p)));
+      const avatarUrl = isBotTyping 
+        ? "https://xsgames.co/randomusers/assets/avatars/male/38.jpg" 
+        : "https://randomuser.me/api/portraits/lego/5.jpg";
+
       messageList.push(
-        <div key="typing" className="message-item-container from-bot typing-indicator-container">
+        <div key="typing" className="message-item-container from-others typing-indicator-container">
           <img
-            src="https://xsgames.co/randomusers/assets/avatars/male/38.jpg"
-            alt="bot"
+            src={avatarUrl}
+            alt="typing"
+            className={isBotTyping ? "bot-avatar" : "user-avatar"}
           />
           <div className="message-item">
-            <div className="bot-message typing-indicator">
+            <div className={`${isBotTyping ? 'bot-message' : 'other-user-message'} typing-indicator`}>
               <span></span>
               <span></span>
               <span></span>
             </div>
+            {typingUser && <span className="message-date">{typingUser.firstname} is typing...</span>}
           </div>
         </div>
       );
@@ -146,8 +189,16 @@ const ActiveChat = observer(() => {
               alt="chat"
             />
             <div className="chat-header-info">
-              <h2>{chat.name}</h2>
-              {isBotTyping && <span className="typing-text">bot is typing...</span>}
+              <h2>{getChatName(chat)}</h2>
+              <span className={`status-text ${isOnline(chat) ? 'online' : 'offline'}`}>
+                {isSomeoneTyping ? (
+                  <span className="typing-text">
+                    {isBotTyping ? 'bot' : 'someone'} is typing...
+                  </span>
+                ) : (
+                  isOnline(chat) ? 'online' : 'offline'
+                )}
+              </span>
             </div>
             <div
               id="change-chat-name"
@@ -176,6 +227,7 @@ const ActiveChat = observer(() => {
         <div id="chat-input-container">
           <ChatInput
             ref={inputRef}
+            chatId={chat._id}
             placeholder="Type your message..."
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}

@@ -3,6 +3,7 @@ import { body, validationResult } from 'express-validator';
 import UserController from './UserController.js';
 import { logger } from '../../logger.js';
 import asyncHandler from '../../utils/asyncHandler.js';
+import { authenticateToken } from '../../middleware/authenticateToken.js';
 
 const router = Router();
 
@@ -45,6 +46,8 @@ router.post(
 );
 
 router.post('/refresh', validateRequest, asyncHandler(UserController.refreshToken));
+
+router.get('/me', authenticateToken, asyncHandler(UserController.getMe));
 
 router.get('/logout', validateRequest, asyncHandler(UserController.logout));
 

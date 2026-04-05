@@ -9,9 +9,11 @@ export const SOCKET_EVENTS = {
   RECEIVE_MESSAGE: "receive_message",
   ERROR_MESSAGE: "error_message",
 
-  //for future implementation
-  USER_TYPING: "user_typing",
-  USER_STOPPED_TYPING: "user_stopped_typing",
+  TYPING_START: "typing_start",
+  TYPING_STOP: "typing_stop",
+
+  CHAT_CREATED: "chat_created",
+  CHAT_DELETED: "chat_deleted",
   USER_ONLINE: "user_online",
   USER_OFFLINE: "user_offline",
 };

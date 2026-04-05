@@ -17,7 +17,6 @@ describe('User Model (in-memory MongoDB)', () => {
 
     expect(savedUser._id).toBeDefined();
     expect(savedUser.email).toBe('vlad@example.com');
-    expect(savedUser.chats).toEqual([]);
   });
 
   it('should require email and password', async () => {
@@ -44,14 +43,4 @@ describe('User Model (in-memory MongoDB)', () => {
     await expect(user2.save()).rejects.toThrow();
   });
 
-  it('should allow linking chats', async () => {
-    const fakeChatId = new User()._id; // just simulate ObjectId
-    const user = new User({
-      email: 'link@example.com',
-      password: '12345678',
-      chats: [fakeChatId],
-    });
-    const savedUser = await user.save();
-    expect(savedUser.chats.length).toBe(1);
-  });
 });

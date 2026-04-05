@@ -9,7 +9,6 @@ class UserRepository {
         firstname,
         lastname,
         refresh_token: '',
-        chats: [],
       });
       return newUser;
     } catch (e) {

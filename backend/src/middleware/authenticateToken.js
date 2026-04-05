@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { config } from '../config/index.js';
 import { logger } from '../logger.js';
 
-const authMiddleware = (req, res, next) => {
+export const authenticateToken = (req, res, next) => {
   try {
     const cookieToken = req.cookies?.access_token;
     const headerToken = req.headers.authorization?.startsWith('Bearer ')
@@ -29,4 +29,4 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-export default authMiddleware;
+export default authenticateToken;

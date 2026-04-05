@@ -6,7 +6,6 @@ const UserSchema = new mongoose.Schema({
   firstname: { type: String },
   lastname: { type: String },
   refresh_token: { type: String, default: '' },
-  chats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat', default: [] }],
-});
+}, { timestamps: true });
 
 export default mongoose.model('User', UserSchema);

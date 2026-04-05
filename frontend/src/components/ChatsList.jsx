@@ -6,7 +6,7 @@ import CreateChatModal from "./CreateChatModal";
 import "../css/chats.css";
 
 const ChatsList = observer(() => {
-  const { filteredChats, fetchChats, setSelectedChat, selectedChat } = chatStore;
+  const { sortedChats, fetchChats, setSelectedChat, selectedChat, currentUser, onlineUsers, typingStatus } = chatStore;
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
@@ -21,6 +21,21 @@ const ChatsList = observer(() => {
 
   const handleChatClick = (chat) => {
     setSelectedChat(chat);
+  };
+
+  const isOnline = (chat) => {
+    if (!chat) return false;
+    if (chat.isBot) return true;
+    const myId = String(currentUser?._id || currentUser?.id || "");
+    if (!myId) return false;
+    const other = chat.participants?.find((p) => String(p._id || p) !== myId);
+    const otherId = other?._id || other;
+    return otherId && !!onlineUsers[String(otherId)];
+  };
+
+  const isTyping = (chat) => {
+    const typingIds = typingStatus[chat._id] || [];
+    return typingIds.length > 0;
   };
 
   const formatDate = (timestamp) => {
@@ -42,8 +57,17 @@ const ChatsList = observer(() => {
     });
   };
 
-  const chats = Array.isArray(filteredChats) ? filteredChats : [];
-  const reversedChats = [...chats].reverse();
+  const getChatName = (chat) => {
+    if (!chat) return "";
+    if (chat.isBot || !chat.participants) return chat.name;
+    const myId = String(currentUser?._id || currentUser?.id || "");
+    if (!myId) return chat.name;
+    const other = chat.participants.find((p) => String(p._id || p) !== myId);
+    return other && other.firstname ? `${other.firstname} ${other.lastname}` : chat.name;
+  };
+
+  const chats = Array.isArray(sortedChats) ? sortedChats : [];
+  const reversedChats = chats; // Already sorted by updatedAt desc
 
   return (
     <div id="chats-container">
@@ -57,6 +81,8 @@ const ChatsList = observer(() => {
         {reversedChats.length > 0 ? (
           reversedChats.map((chat) => {
             const lastMessage = chat.messages?.[chat.messages.length - 1];
+            const chatIsTyping = isTyping(chat);
+            
             return (
               <div
                 key={chat._id}
@@ -65,18 +91,27 @@ const ChatsList = observer(() => {
                   selectedChat && selectedChat._id === chat._id ? "active" : ""
                 }`}
               >
-                <img
-                  className="chat-logo"
-                  src="https://randomuser.me/api/portraits/lego/5.jpg"
-                  alt="chat avatar"
-                />
+                <div className="avatar-container">
+                  <img
+                    className="chat-logo"
+                    src="https://randomuser.me/api/portraits/lego/5.jpg"
+                    alt="chat avatar"
+                  />
+                  {isOnline(chat) && <span className="online-indicator"></span>}
+                </div>
                 <div className="chat-name-message">
-                  <span className="chat-name">{chat.name}</span>
+                  <span className="chat-name">{getChatName(chat)}</span>
                   <br />
                   <div className="recent-message-container">
-                    <p className="truncate-text">
-                      {lastMessage ? String(lastMessage.content) : ""}
-                    </p>
+                    {chatIsTyping ? (
+                      <p className="truncate-text typing-text-list">
+                        is typing...
+                      </p>
+                    ) : (
+                      <p className="truncate-text">
+                        {lastMessage ? String(lastMessage.content) : ""}
+                      </p>
+                    )}
                     <span className="recent-message-timestamp">
                       {lastMessage ? formatDate(lastMessage.timestamp) : ""}
                     </span>

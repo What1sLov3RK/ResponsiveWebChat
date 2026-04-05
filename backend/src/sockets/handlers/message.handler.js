@@ -1,6 +1,7 @@
 import { SOCKET_EVENTS } from '../socket.events.js';
 import { logSocketEvent } from '../socketLogger.js';
 import MessageService from '../../modules/message/MessageService.js';
+import Chat from '../../db/models/Chats.model.js';
 import { logger } from '../../logger.js';
 
 /**
@@ -14,11 +15,6 @@ export default function registerMessageHandlers(io) {
     socket.on(SOCKET_EVENTS.JOIN_CHAT, async (chatId) => {
       try {
         if (!chatId) return;
-        // Verify access via MessageService or similar logic
-        // For simplicity and since MessageService.getMessagesByChat verifies access,
-        // we can just try to get messages or use a dedicated check.
-        // Here we just join the room if chatId is provided.
-        // Actual access check happens when sending/receiving messages.
         socket.join(chatId);
         logSocketEvent(socket, 'join_chat', { chatId });
       } catch (err) {
@@ -40,18 +36,57 @@ export default function registerMessageHandlers(io) {
           chatId,
         });
 
-        // Trigger bot response
-        const botMessage = await MessageService.sendBotMessage(chatId, userId);
-
-        io.to(chatId).emit(SOCKET_EVENTS.RECEIVE_MESSAGE, {
-          ...botMessage.toObject(),
-          chatId,
-        });
-
-        logSocketEvent(socket, 'bot_reply', { chatId, botContent: botMessage.content });
+        // Check if it's a bot chat to trigger bot response
+        const chat = await Chat.findById(chatId);
+        if (chat && chat.isBot) {
+          const botMessage = await MessageService.sendBotMessage(chatId, userId);
+          io.to(chatId).emit(SOCKET_EVENTS.RECEIVE_MESSAGE, {
+            ...botMessage.toObject(),
+            chatId,
+          });
+          logSocketEvent(socket, 'bot_reply', { chatId, botContent: botMessage.content });
+        }
       } catch (err) {
         logSocketEvent(socket, 'send_message_error', { error: err.message }, 'error');
         socket.emit(SOCKET_EVENTS.ERROR_MESSAGE, err.message || 'Failed to send message');
+      }
+    });
+
+    socket.on(SOCKET_EVENTS.TYPING_START, async (chatId) => {
+      try {
+        if (!chatId) return;
+        const chat = await Chat.findById(chatId);
+        if (!chat) return;
+
+        chat.participants.forEach((participantId) => {
+          if (String(participantId) !== String(socket.user.userId)) {
+            io.to(`user:${participantId}`).emit(SOCKET_EVENTS.TYPING_START, {
+              chatId,
+              userId: socket.user.userId,
+            });
+          }
+        });
+      } catch (err) {
+        logger.error({ error: err.message }, 'Typing start error');
+      }
+    });
+
+    socket.on(SOCKET_EVENTS.TYPING_STOP, async (chatId) => {
+      try {
+        if (!chatId) return;
+        const chat = await Chat.findById(chatId);
+        if (!chat) return;
+
+        chat.participants.forEach((participantId) => {
+          if (String(participantId) !== String(socket.user.userId)) {
+            io.to(`user:${participantId}`).emit(SOCKET_EVENTS.TYPING_STOP, {
+              chatId,
+              userId: socket.user.userId,
+            });
+          }
+        });
+      } catch (err) {
+        logger.error({ error: err.message }, 'Typing stop error');
       }
     });
 

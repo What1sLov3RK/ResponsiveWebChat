@@ -6,8 +6,10 @@ import { logger } from '../logger.js';
 import { socketAuth } from '../middleware/socketAuth.js';
 import registerMessageHandlers from './handlers/message.handler.js';
 
+let io;
+
 export const initSocket = (httpServer) => {
-  const io = new Server(httpServer, {
+  io = new Server(httpServer, {
     cors: {
       origin: (origin, callback) => {
         const allowedOrigins = [config.corsOrigin, 'http://localhost:3000', 'http://127.0.0.1:3000'];
@@ -27,6 +29,27 @@ export const initSocket = (httpServer) => {
 
   io.on(SOCKET_EVENTS.CONNECTION, (socket) => {
     logSocketEvent(socket, 'connection');
+    const userId = socket.user?.userId;
+
+    if (userId) {
+      socket.join(`user:${userId}`);
+      logger.info({ userId, socketId: socket.id }, 'User joined private room');
+
+      // Send initial list of online users
+      const onlineUserIds = Array.from(io.sockets.sockets.values())
+        .map(s => s.user?.userId)
+        .filter(id => id && id !== userId);
+      
+      socket.emit(SOCKET_EVENTS.USER_ONLINE, { userIds: [...new Set(onlineUserIds)] });
+
+      // Notify others that user is online (only if it's the first connection)
+      const hasOtherConnections = Array.from(io.sockets.sockets.values())
+        .some(s => s.user?.userId === userId && s.id !== socket.id);
+
+      if (!hasOtherConnections) {
+        socket.broadcast.emit(SOCKET_EVENTS.USER_ONLINE, { userId });
+      }
+    }
 
     socket.on('join', (room) => {
       socket.join(room);
@@ -35,6 +58,15 @@ export const initSocket = (httpServer) => {
 
     socket.on(SOCKET_EVENTS.DISCONNECT, (reason) => {
       logSocketEvent(socket, 'disconnect', { reason });
+      if (userId) {
+        // Check if user has other active connections
+        const hasOtherConnections = Array.from(io.sockets.sockets.values())
+          .some(s => s.user?.userId === userId && s.id !== socket.id);
+        
+        if (!hasOtherConnections) {
+          socket.broadcast.emit(SOCKET_EVENTS.USER_OFFLINE, { userId });
+        }
+      }
     });
   });
 
@@ -44,5 +76,12 @@ export const initSocket = (httpServer) => {
 
   logSocketEvent({ id: 'server' }, 'socket_server_initialized');
 
+  return io;
+};
+
+export const getIO = () => {
+  if (!io) {
+    throw new Error('Socket.io not initialized!');
+  }
   return io;
 };

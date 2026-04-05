@@ -37,10 +37,14 @@ const SignUp = ({ onClose, switchToLogin }) => {
   chatStore.initSocket();
 }, 500);
       localStorage.setItem("authorized", "true");
-      localStorage.setItem(
-        "user-info",
-        JSON.stringify({ firstname, lastname, email })
-      );
+      const userInfo = {
+        _id: res.user?._id,
+        firstname: res.user?.firstname,
+        lastname: res.user?.lastname,
+        email: payload.email,
+      };
+      localStorage.setItem("user-info", JSON.stringify(userInfo));
+      chatStore.setCurrentUser(userInfo);
       await new Promise((r) => setTimeout(r, 100));
 
       await fetchChats();

@@ -80,8 +80,29 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  margin-right: 10px;
   object-fit: cover;
+}
+
+.avatar-container {
+  position: relative;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.online-indicator {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  width: 10px;
+  height: 10px;
+  background-color: #4caf50;
+  border: 2px solid #fcfcfc;
+  border-radius: 50%;
+}
+
+.chat-item.active .online-indicator {
+  border-color: deepskyblue;
 }
 
 .chat-name-message {
@@ -115,6 +136,12 @@
   white-space: nowrap;
   color: #4d4d4d;
   margin-right: 8px;
+}
+
+.typing-text-list {
+  color: #4caf50;
+  font-style: italic;
+  font-weight: 500;
 }
 
 .recent-message-timestamp {

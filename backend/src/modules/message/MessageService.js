@@ -4,19 +4,18 @@ import { logger } from '../../logger.js';
 
 class MessageService {
   static async createMessage(chatId, userId, content, sender = 'user') {
-    const chat = await Chat.findOne({ _id: chatId, user: userId });
+    const chat = await Chat.findOne({ _id: chatId, participants: { $in: [userId] } });
     if (!chat) throw new Error('Chat not found or access denied');
 
     const message = await Message.create({
       chatId,
       sender,
+      senderId: sender === 'user' ? userId : null,
       content: content.trim(),
-      timestamp: new Date(),
     });
 
-    await Chat.findByIdAndUpdate(chatId, {
-      $push: { messages: message._id },
-    });
+    // Update chat's updatedAt to sort by recent activity
+    await Chat.findByIdAndUpdate(chatId, { updatedAt: new Date() });
 
     return message;
   }
@@ -38,13 +37,10 @@ class MessageService {
   }
 
   static async getMessagesByChat(chatId, userId) {
-    const chat = await Chat.findOne({ _id: chatId, user: userId }).populate({
-      path: 'messages',
-      options: { sort: { createdAt: 1 } },
-    });
-
+    const chat = await Chat.findOne({ _id: chatId, participants: { $in: [userId] } });
     if (!chat) throw new Error('Chat not found or access denied');
-    return chat.messages;
+
+    return Message.find({ chatId }).sort({ createdAt: 1 }).lean().exec();
   }
 }
 

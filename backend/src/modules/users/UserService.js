@@ -27,13 +27,15 @@ class UserService {
     await user.save();
 
     const defaultChats = ['Gimmel', 'Aizen', 'Frieren'];
-    const chats = await Promise.all(
-      defaultChats.map((name) => Chat.create({ name, user: user._id })),
+    await Promise.all(
+      defaultChats.map((name) => Chat.create({ name, participants: [user._id], isBot: true })),
     );
-    user.chats.push(...chats.map((c) => c._id));
-    await user.save();
 
     return { ...tokens, user };
+  }
+
+  static async getUserById(userId) {
+    return User.findById(userId).select('-password -refresh_token').lean();
   }
 
   static async login(email, password) {

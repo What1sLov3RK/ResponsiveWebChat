@@ -87,6 +87,33 @@
   gap: 12px;
 }
 
+.modal-tabs {
+  display: flex;
+  background: #f3f4f6;
+  padding: 4px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.modal-tabs button {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #6b7280;
+}
+
+.modal-tabs button.active {
+  background: #fff;
+  color: #00bfff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
 /* Form elements within modals */
 .modal-body #form, 
 .modal-body form {

@@ -4,13 +4,13 @@ import { useState, useEffect } from "react";
 import AuthModal from "./AuthModal";
 import Input from "./Input";
 import chatStore from "../stores/chatStore";
+import { observer } from "mobx-react-lite";
 import api from '../api';
 
-const UserPanel = () => {
+const UserPanel = observer(() => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
-  const [user, setUser] = useState(null);
-  const { setSelectedChat } = chatStore;
+  const { currentUser, setSelectedChat, cleanupSocketListeners, syncUser, setSearchQuery } = chatStore;
 
   const openLoginModal = () => {
     setIsSignup(false);
@@ -24,25 +24,17 @@ const UserPanel = () => {
     localStorage.removeItem("user-info");
     chatStore.chats = [];
     chatStore.selectedChat = null;
-    chatStore.cleanupSocketListeners();
-    setUser(null);
+    cleanupSocketListeners();
+    chatStore.currentUser = null;
   };
 
   const searchChange = (event) => {
-    chatStore.setSearchQuery(event.target.value);
+    setSearchQuery(event.target.value);
   };
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user-info");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {
-        setUser(null);
-        setSelectedChat(null);
-      }
-    }
-  }, [isModalOpen, setSelectedChat]);
+    syncUser();
+  }, [isModalOpen, syncUser]);
 
   return (
     <div id="user-panel-container">
@@ -54,11 +46,11 @@ const UserPanel = () => {
             alt="profile"
           />
           <span className="user-name">
-            {user ? `${user.firstname} ${user.lastname}` : "Guest"}
+            {currentUser ? `${currentUser.firstname} ${currentUser.lastname}` : "Guest"}
           </span>
         </div>
 
-        {user ? (
+        {currentUser ? (
           <Button onClick={handleLogout} name="Log Out" />
         ) : (
           <Button onClick={openLoginModal} name="Log In" />
@@ -79,6 +71,6 @@ const UserPanel = () => {
       </div>
     </div>
   );
-};
+});
 
 export default UserPanel;
