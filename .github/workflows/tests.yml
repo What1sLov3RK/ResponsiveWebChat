@@ -27,7 +27,27 @@ jobs:
         working-directory: ./backend
         env:
           NODE_OPTIONS: "--experimental-vm-modules"
-          JWT_ACCESS_SECRET: ${{ secrets.JWT_SECRET }}
-          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
-          MONGO_URI: "mongodb://localhost:27017/testdb"
+          JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET || secrets.JWT_SECRET || 'test_access_token_secret_123' }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET || 'test_refresh_token_secret_123' }}
+          DB_URL: "mongodb://localhost:27017/testdb"
         run: npm test
+
+  frontend-build:
+    name: 🖼️ Frontend Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📦 Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: 🏗️ Build frontend
+        working-directory: ./frontend
+        run: npm run build
