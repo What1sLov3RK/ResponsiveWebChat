@@ -1,0 +1,21 @@
+# dependencies
+node_modules/
+
+# logs
+logs/*.log
+*.log
+
+# environment variables
+.env
+.env.*
+!.env.example
+
+# uploads
+uploads/
+
+# testing
+coverage/
+
+# system files
+.DS_Store
+package-lock.json

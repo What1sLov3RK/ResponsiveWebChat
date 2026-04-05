@@ -35,9 +35,11 @@
     "socket.io": "^4.8.1",
     "swagger-autogen": "^2.23.7",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "baseline-browser-mapping": "^2.10.15",
     "eslint": "^9.37.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
